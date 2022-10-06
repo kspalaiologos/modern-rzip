@@ -1,9 +1,8 @@
 
 .PHONY: deps
 deps:
-	cd vendor
-	cd zpaq && make -C && cd ..
-	cd lz4 && make -C && cd ..
-	cd zstd && make -C && cd ..
-	cd bzip3 && ./configure && make && cd ..
-	cd fast-lzma2 && make && cd ..
+	make -C vendor/zpaq
+	make -C vendor/lz4
+	make -C vendor/zstd
+	make -C vendor/fast-lzma2
+	cd vendor/bzip3 && ./configure && make
