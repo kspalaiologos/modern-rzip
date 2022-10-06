@@ -4,3 +4,6 @@
 [submodule "vendor/lz4"]
 	path = vendor/lz4
 	url = https://github.com/lz4/lz4
+[submodule "vendor/fast-lzma2"]
+	path = vendor/fast-lzma2
+	url = https://github.com/conor42/fast-lzma2
