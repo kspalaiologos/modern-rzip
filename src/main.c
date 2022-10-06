@@ -86,13 +86,13 @@ static void usage(void)
 	print_output("Usage: mrzip [options] <file...>\n");
 	print_output("Compression Options:\n--------------------\n");
 	print_output("	--lzma			lzma compression (default)\n");
-	print_output("	-s, --ppmdsh	ppmd_sh varJr1 compression\n");
+	print_output("	-s, --ppmdsh		ppmd_sh varJr1 compression\n");
 	print_output("	-Z, --zstd		zstd compression using zlib\n");
 	print_output("	-l, --lz4		lz4 compression (ultra fast)\n");
 	print_output("	-n, --no-compress	no backend compression - prepare for other compressor\n");
 	print_output("	-z, --zpaq		zpaq compression (best, extreme compression, extremely slow)\n");
 	print_output("	-B, --bzip3		bzip3 compression\n");
-	print_output("	-L#, --level #		set lzma/ppm/zstd compression level (1-9, default 7)\n");
+	print_output("	-L#, --level #		set lzma/zstd compression level (1-9, default 7)\n");
 	print_output("	--fast			alias for -L1\n");
 	print_output("	--best			alias for -L9\n");
 	print_output("	--zpaqbs		Set ZPAQ Block Size overriding defaults. 1-11, 2^zpaqbs * 1MB\n");

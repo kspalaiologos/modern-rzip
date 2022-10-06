@@ -388,6 +388,7 @@ static int lzma_compress_buf(rzip_control *control, struct compress_thread *cthr
 	}
 	
 	size_t lzma_ret = FL2_compress(c_buf, dlen, cthread->s_buf, cthread->s_len, control->compression_level);
+	dlen = lzma_ret;
 
 	if (unlikely((i64)dlen >= cthread->c_len) || FL2_isError(lzma_ret)) {
 		/* Incompressible, leave as CTYPE_NONE */
