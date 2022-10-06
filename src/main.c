@@ -87,7 +87,7 @@ static void usage(void)
 	print_output("	--lzma			lzma compression (default)\n");
 	print_output("	-b, --bzip2		bzip2 compression\n");
 	print_output("	-g, --gzip		gzip compression using zlib\n");
-	print_output("	-l, --lzo		lzo compression (ultra fast)\n");
+	print_output("	-l, --lz4		lz4 compression (ultra fast)\n");
 	print_output("	-n, --no-compress	no backend compression - prepare for other compressor\n");
 	print_output("	-z, --zpaq		zpaq compression (best, extreme compression, extremely slow)\n");
 	print_output("	-B, --bzip3		bzip3 compression\n");
@@ -189,13 +189,13 @@ static void show_summary(void)
 		if (!DECOMPRESS && !TEST_ONLY) {
 			print_verbose("Compression mode is: %s",
 					(LZMA_COMPRESS ? "LZMA" :
-					(LZO_COMPRESS ? "LZO\n" :	// No Threshold testing
+					(LZ4_COMPRESS ? "LZ4\n" :	// No Threshold testing
 					(BZIP2_COMPRESS ? "BZIP2" :
 					(ZLIB_COMPRESS ? "GZIP\n" :	// No Threshold testing
 					(ZPAQ_COMPRESS ? "ZPAQ" :
 					(BZIP3_COMPRESS ? "BZIP3" :
 					(NO_COMPRESS ? "RZIP pre-processing only" : "wtf"))))))));
-			if (!LZO_COMPRESS && !ZLIB_COMPRESS)
+			if (!LZ4_COMPRESS && !ZLIB_COMPRESS)
 				print_verbose(". LZ4 Compressibility testing %s\n", (LZ4_TEST? "enabled" : "disabled"));
 			if (LZ4_TEST && control->threshold != 100)
 				print_verbose("Threshhold limit = %'d\%\n", control->threshold);
@@ -246,7 +246,7 @@ static struct option long_options[] = {
 	{"hash",	optional_argument,	0,	'H'},	/* 10 */
 	{"info",	no_argument,	0,	'i'},
 	{"keep-broken",	no_argument,	0,	'K'},
-	{"lzo",		no_argument,	0,	'l'},
+	{"lz4",		no_argument,	0,	'l'},
 	{"level",	optional_argument,	0,	'L'},
 	{"maxram",	required_argument,	0,	'm'},	/* 15 */
 	{"no-compress",	no_argument,	0,	'n'},
@@ -355,7 +355,7 @@ int main(int argc, char *argv[])
 			else if (c == 'g')
 				control->flags |= FLAG_ZLIB_COMPRESS;
 			else if (c == 'l')
-				control->flags |= FLAG_LZO_COMPRESS;
+				control->flags |= FLAG_LZ4_COMPRESS;
 			else if (c == 'n')
 				control->flags |= FLAG_NO_COMPRESS;
 			else if (c == 'z')
@@ -654,8 +654,8 @@ int main(int argc, char *argv[])
 	}
 
 	/* if any filter used, disable LZ4 testing or certain compression modes */
-	if ((control->flags & FLAG_THRESHOLD) && (FILTER_USED || ZLIB_COMPRESS || LZO_COMPRESS || NO_COMPRESS)) {
-		print_output("LZ4 Threshold testing disabled due to Filtering and/or Compression type (gzip, lzo, rzip).\n");
+	if ((control->flags & FLAG_THRESHOLD) && (FILTER_USED || ZLIB_COMPRESS || LZ4_COMPRESS || NO_COMPRESS)) {
+		print_output("LZ4 Threshold testing disabled due to Filtering and/or Compression type (gzip, lz4, rzip).\n");
 		control->flags &= ~FLAG_THRESHOLD;
 	}
 

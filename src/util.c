@@ -276,15 +276,15 @@ bool read_config(rzip_control *control)
 				fatal("CONF.FILE error. RZIP Compression Level must between 1 and 9\n");
 		}
 		else if (isparameter(parameter, "compressionmethod")) {
-			/* valid are rzip, gzip, bzip2, lzo, lzma (default), and zpaq */
+			/* valid are rzip, gzip, bzip2, lz4, lzma (default), and zpaq */
 			if (control->flags & FLAG_NOT_LZMA)
 				fatal("CONF.FILE error. Can only specify one compression method\n");
 			if (isparameter(parametervalue, "bzip2"))
 				control->flags |= FLAG_BZIP2_COMPRESS;
 			else if (isparameter(parametervalue, "gzip"))
 				control->flags |= FLAG_ZLIB_COMPRESS;
-			else if (isparameter(parametervalue, "lzo"))
-				control->flags |= FLAG_LZO_COMPRESS;
+			else if (isparameter(parametervalue, "lz4"))
+				control->flags |= FLAG_LZ4_COMPRESS;
 			else if (isparameter(parametervalue, "rzip"))
 				control->flags |= FLAG_NO_COMPRESS;
 			else if (isparameter(parametervalue, "zpaq"))
@@ -294,7 +294,7 @@ bool read_config(rzip_control *control)
 			else if (!isparameter(parametervalue, "lzma")) /* oops, not lzma! */
 				fatal("CONF.FILE error. Invalid compression method %s specified\n", parametervalue);
 		}
-		else if (isparameter(parameter, "lzotest")) {
+		else if (isparameter(parameter, "lz4test")) {
 			/* default is yes */
 			if (isparameter(parametervalue, "no"))
 				control->flags &= ~FLAG_THRESHOLD;
@@ -303,7 +303,7 @@ bool read_config(rzip_control *control)
 			/* default is 100 */
 			control->threshold = atoi(parametervalue);
 			if (control->threshold < 1 || control->threshold > 99)
-				fatal("CONF.FILE error. LZO Threshold must be between 1 and 99\n");
+				fatal("CONF.FILE error. LZ4 Threshold must be between 1 and 99\n");
 		}
 		else if (isparameter(parameter, "hashcheck")) {
 			if (isparameter(parametervalue, "yes")) {

@@ -949,13 +949,6 @@ void rzip_fd(rzip_control *control, int fd_in, int fd_out)
 	if (unlikely(!st))
 		fatal("Failed to allocate control state in rzip_fd\n");
 
-	if (LZO_COMPRESS) {
-		if (unlikely(lzo_init() != LZO_E_OK)) {
-			dealloc(st);
-			fatal("lzo_init() failed\n");
-		}
-	}
-
 	if (unlikely(fstat(fd_in, &s))) {
 		dealloc(st);
 		fatal("Failed to stat fd_in in rzip_fd\n");

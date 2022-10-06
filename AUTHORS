@@ -4,9 +4,11 @@ Beginning with version 0.19, Peter Hyman submitted bug fixes,
 patches, multi-threading support, assembler integration,
 SDK updating, and autoconf improvements.
 
+Beginning with version 0.9, Kamila Szewczyk has restructured
+and modernised the project.
+
 Thanks to:
 Andrew Tridgell for rzip
-Markus Oberhumer for lzo
 Igor Pavlov for lzma and CRC & Decompressor Assembler code 
 Jean-loup Gailly and Mark Adler for the zlib compression library
 Christian Leber for lzma compat layer

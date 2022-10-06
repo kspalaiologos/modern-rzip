@@ -88,7 +88,7 @@ faster compression than standalone compressors and much faster decompression.
 * lzma (default)
 * gzip
 * bzip2
-* lzo
+* lz4
 * zpaq
 * bzip3
 * rzip (pre-processed only)

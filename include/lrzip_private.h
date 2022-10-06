@@ -220,7 +220,7 @@ static inline unsigned char lzma2_prop_from_dic(u32 dicSize)
 #define FLAG_FORCE_REPLACE	(1 << 3)
 #define FLAG_DECOMPRESS		(1 << 4)
 #define FLAG_NO_COMPRESS	(1 << 5)
-#define FLAG_LZO_COMPRESS	(1 << 6)
+#define FLAG_LZ4_COMPRESS	(1 << 6)
 #define FLAG_BZIP2_COMPRESS	(1 << 7)
 #define FLAG_ZLIB_COMPRESS	(1 << 8)
 #define FLAG_ZPAQ_COMPRESS	(1 << 9)
@@ -244,7 +244,7 @@ static inline unsigned char lzma2_prop_from_dic(u32 dicSize)
 
 #define CTYPE_NONE 3
 #define CTYPE_BZIP2 4
-#define CTYPE_LZO 5
+#define CTYPE_LZ4 5
 #define CTYPE_LZMA 6
 #define CTYPE_GZIP 7
 #define CTYPE_ZPAQ 8
@@ -290,7 +290,7 @@ static inline unsigned char lzma2_prop_from_dic(u32 dicSize)
 #define ARBITRARY_AT_EPOCH (ARBITRARY * pow (MOORE_TIMES_PER_SECOND, -T_ZERO))
 
 #define FLAG_VERBOSE (FLAG_VERBOSITY | FLAG_VERBOSITY_MAX)
-#define FLAG_NOT_LZMA (FLAG_NO_COMPRESS | FLAG_LZO_COMPRESS | FLAG_BZIP2_COMPRESS | FLAG_ZLIB_COMPRESS | FLAG_ZPAQ_COMPRESS | FLAG_BZIP3_COMPRESS)
+#define FLAG_NOT_LZMA (FLAG_NO_COMPRESS | FLAG_LZ4_COMPRESS | FLAG_BZIP2_COMPRESS | FLAG_ZLIB_COMPRESS | FLAG_ZPAQ_COMPRESS | FLAG_BZIP3_COMPRESS)
 #define LZMA_COMPRESS	(!(control->flags & FLAG_NOT_LZMA))
 
 #define SHOW_PROGRESS	(control->flags & FLAG_SHOW_PROGRESS)
@@ -299,7 +299,7 @@ static inline unsigned char lzma2_prop_from_dic(u32 dicSize)
 #define FORCE_REPLACE	(control->flags & FLAG_FORCE_REPLACE)
 #define DECOMPRESS	(control->flags & FLAG_DECOMPRESS)
 #define NO_COMPRESS	(control->flags & FLAG_NO_COMPRESS)
-#define LZO_COMPRESS	(control->flags & FLAG_LZO_COMPRESS)
+#define LZ4_COMPRESS	(control->flags & FLAG_LZ4_COMPRESS)
 #define BZIP2_COMPRESS	(control->flags & FLAG_BZIP2_COMPRESS)
 #define ZLIB_COMPRESS	(control->flags & FLAG_ZLIB_COMPRESS)
 #define ZPAQ_COMPRESS	(control->flags & FLAG_ZPAQ_COMPRESS)

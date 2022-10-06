@@ -31,6 +31,7 @@
 #include <libbz3.h>
 #include <zstd.h>
 #include <lz4.h>
+#include <lz4hc.h>
 #include <errno.h>
 #include <arpa/inet.h>
 
@@ -195,7 +196,7 @@ static void bzip3_decompress(rzip_control *control, uchar *s_buf, i64 *s_len, i6
 /*
   ***** COMPRESSION FUNCTIONS *****
 
-  ZPAQ, BZIP, GZIP, LZMA, LZO, BZIP3
+  ZPAQ, BZIP, GZIP, LZMA, LZ4, BZIP3
 
   try to compress a buffer. If compression fails for whatever reason then
   leave uncompressed. Return the compression type in c_type and resulting
@@ -482,51 +483,46 @@ retry:
 	return 0;
 }
 
-static int lzo_compress_buf(rzip_control *control, struct compress_thread *cthread)
+static int lz4_compress_buf(rzip_control *control, struct compress_thread *cthread)
 {
-	lzo_uint in_len = cthread->s_len;
-	lzo_uint dlen = round_up_page(control, in_len + in_len / 16 + 64 + 3);
-	lzo_bytep wrkmem;
+	uint32_t in_len = cthread->s_len;
+	uint32_t dlen = round_up_page(control, in_len + in_len / 16 + 64 + 3);
 	uchar *c_buf;
 	int ret = -1;
-
-	wrkmem = (lzo_bytep) calloc(1, LZO1X_1_MEM_COMPRESS);
-	if (unlikely(wrkmem == NULL)) {
-		print_maxverbose("Failed to malloc wkmem\n");
-		return ret;
-	}
-
+	
 	c_buf = malloc(dlen);
 	if (!c_buf) {
-		print_err("Unable to allocate c_buf in lzo_compress_buf");
-		goto out_free;
+		print_err("Unable to allocate c_buf in lz4_compress_buf");
+		return 0;
 	}
 
-	/* lzo1x_1_compress does not return anything but LZO_OK so we ignore
-	 * the return value */
-	lzo1x_1_compress(cthread->s_buf, in_len, c_buf, &dlen, wrkmem);
-	ret = 0;
-
-	if (dlen >= in_len){
-		/* Incompressible, leave as CTYPE_NONE */
-		print_maxverbose("Incompressible block\n");
-		dealloc(c_buf);
-		goto out_free;
+	if(control->compression_level <= 2) {
+		if((dlen = LZ4_compress_default((const char *)cthread->s_buf, (char *)c_buf, in_len, dlen)) == 0) {
+			/* Incompressible, leave as CTYPE_NONE */
+			print_maxverbose("Incompressible block\n");
+			dealloc(c_buf);
+			return 0;
+		}
+	} else {
+		if((dlen = LZ4_compress_HC((const char *)cthread->s_buf, (char *)c_buf, in_len, dlen, control->compression_level)) == 0) {
+			/* Incompressible, leave as CTYPE_NONE */
+			print_maxverbose("Incompressible block\n");
+			dealloc(c_buf);
+			return 0;
+		}
 	}
 
 	cthread->c_len = dlen;
 	dealloc(cthread->s_buf);
 	cthread->s_buf = c_buf;
-	cthread->c_type = CTYPE_LZO;
-out_free:
-	dealloc(wrkmem);
-	return ret;
+	cthread->c_type = CTYPE_LZ4;
+	return 0;
 }
 
 /*
-  ***** DECOMPRESSION FUNCTIONS *****
+  ***** DECOMPRESSION FUNCTIONS *****`
 
-  ZPAQ, BZIP, GZIP, LZMA, LZO, BZIP3
+  ZPAQ, BZIP, GZIP, LZMA, LZ4, BZIP3
 
   try to decompress a buffer. Return 0 on success and -1 on failure.
 */
@@ -696,11 +692,11 @@ out:
 	return ret;
 }
 
-static int lzo_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread)
+static int lz4_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread)
 {
-	lzo_uint dlen = ucthread->u_len;
-	int ret = 0, lzerr;
-	uchar *c_buf;
+	uint32_t dlen = ucthread->u_len;
+	int ret = 0;
+	uint8_t *c_buf;
 
 	c_buf = ucthread->s_buf;
 	ucthread->s_buf = malloc(round_up_page(control, dlen));
@@ -710,9 +706,10 @@ static int lzo_decompress_buf(rzip_control *control, struct uncomp_thread *ucthr
 		goto out;
 	}
 
-	lzerr = lzo1x_decompress_safe((uchar*)c_buf, ucthread->c_len, (uchar*)ucthread->s_buf, &dlen, NULL);
-	if (unlikely(lzerr != LZO_E_OK)) {
-		print_err("Failed to decompress buffer - lzerr=%'d\n", lzerr);
+	dlen = LZ4_decompress_safe((char*)c_buf, (char*)ucthread->s_buf, ucthread->c_len, dlen);
+
+	if (dlen < 0) {
+		print_err("Failed to decompress buffer - lzerr=%'d\n", dlen);
 		ret = -1;
 		goto out;
 	}
@@ -1502,8 +1499,8 @@ retry:
 		/* Any Filter */
 		if (LZMA_COMPRESS)
 			ret = lzma_compress_buf(control, cti, current_thread);
-		else if (LZO_COMPRESS)
-			ret = lzo_compress_buf(control, cti);
+		else if (LZ4_COMPRESS)
+			ret = lz4_compress_buf(control, cti);
 		else if (BZIP2_COMPRESS)
 			ret = bzip2_compress_buf(control, cti);
 		else if (ZLIB_COMPRESS)
@@ -1735,8 +1732,8 @@ retry:
 			case CTYPE_LZMA:
 				ret = lzma_decompress_buf(control, uci);
 				break;
-			case CTYPE_LZO:
-				ret = lzo_decompress_buf(control, uci);
+			case CTYPE_LZ4:
+				ret = lz4_decompress_buf(control, uci);
 				break;
 			case CTYPE_BZIP2:
 				ret = bzip2_decompress_buf(control, uci);
