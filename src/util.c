@@ -155,7 +155,7 @@ void setup_overhead(rzip_control *control)
 				break;	// should never reach here
 			}
 		}
-		control->overhead = (i64) (1 << control->zpaq_bs) * ONE_MB;	// times 8 or 16. Out for now
+		control->overhead = (i64) (1 << control->zpaq_bs) * ONE_MB * 8;	// times 8 or 16. Out for now
 	} else if(BZIP3_COMPRESS) {
 		if(control->bzip3_bs == 0) {
 			switch (control->compression_level) {
