@@ -14,16 +14,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+CC=clang
+FLAGS=-g3 -O2 -march=native -mtune=native
+CFLAGS=$(FLAGS)
+CXXFLAGS=$(FLAGS)
+
 ZPAQ_LIB=-Ivendor/zpaq/ vendor/zpaq/libzpaq.o
 LZ4_LIB=-Ivendor/lz4/lib vendor/lz4/lib/liblz4.a
 ZSTD_LIB=-Ivendor/zstd/lib vendor/zstd/lib/libzstd.a
 FLZMA2_LIB=-Ivendor/fast-lzma2/ vendor/fast-lzma2/libfast-lzma2.a
 BZIP3_LIB=-Ivendor/bzip3/include vendor/bzip3/src/libbz3.c
-PPMDSH_VARJR1_LIB=vendor/ppmd_sh.o -Ivendor/ppmd_sh/ -Ivendor/ppmd_sh/libpmd
+PPMDSH_VARJR1_LIB=vendor/cxx_glue.o -Ivendor/ppmd_sh/ -Ivendor/ppmd_sh/libpmd
 LIBS=$(ZPAQ_LIB) $(LZ4_LIB) $(FLZMA2_LIB) $(ZSTD_LIB) $(BZIP3_LIB) $(PPMDSH_VARJR1_LIB)
 
 mrzip:
-	$(CC) $(CFLAGS) -Iinclude -o $@ src/*.c $(LIBS) -lstdc++ -lm -pthread -lpthread -lgcrypt -lgpg-error
+	$(CC) $(CFLAGS) -Iinclude -o $@ src/*.c $(LIBS) -lstdc++ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
+
+.PHONY: clean
+clean:
+	rm -f mrzip
 
 .PHONY: deps
 deps: vendor/zpaq vendor/lz4 vendor/zstd vendor/fast-lzma2 vendor/bzip3

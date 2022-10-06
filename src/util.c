@@ -412,8 +412,8 @@ static void lrz_keygen(const rzip_control *control, const uchar *salt, uchar *ke
 	gcry_md_extract(gcry_enchash_handle, algo, iv, ivlen);
 	gcry_md_close(gcry_enchash_handle);
 
-	memset(buf, 0, sizeof(buf));
-	munlock(buf, sizeof(buf));
+	memset(buf, 0, HASH_LEN + SALT_LEN + PASS_LEN);
+	munlock(buf, HASH_LEN + SALT_LEN + PASS_LEN);
 	dealloc(buf);
 }
 
@@ -491,7 +491,7 @@ void lrz_stretch(rzip_control *control)
 	for (i = 1; i <= 30; i++)
 		if ( control->encloops < (1 << i) ) break;
 
-	costfactor = (1 << i-1);
+	costfactor = 1 << (i-1);
 
 	print_maxverbose("SCRYPTing password: Cost factor %'d, Parallelization Factor: %'d\n", costfactor , parallelization);
 
