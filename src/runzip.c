@@ -17,29 +17,13 @@
 */
 /* rzip decompression algorithm */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-
+#include <stdint.h>
 #include <sys/types.h>
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#ifdef HAVE_ENDIAN_H
-# include <endian.h>
-#elif HAVE_SYS_ENDIAN_H
-# include <sys/endian.h>
-#endif
-#ifdef HAVE_ARPA_INET_H
-# include <arpa/inet.h>
-#endif
-
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include "config.h"
 #include "runzip.h"
 #include "stream.h"
 #include "util.h"
@@ -271,7 +255,7 @@ void clear_rulist(rzip_control *control)
  */
 static i64 runzip_chunk(rzip_control *control, int fd_in, i64 expected_size, i64 tally)
 {
-	uint32 good_cksum, cksum = 0;
+	uint32_t good_cksum, cksum = 0;
 	i64 len, ofs, total = 0;
 	int p;
 	char chunk_bytes;

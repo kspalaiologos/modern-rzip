@@ -20,8 +20,6 @@
 #ifndef LRZIP_PRIV_H
 #define LRZIP_PRIV_H
 
-#include "config.h"
-
 #define NUM_STREAMS 2
 #define ONE_MB 1048576
 #define one_g (1000 * ONE_MB)
@@ -35,41 +33,12 @@
 #include <semaphore.h>
 #include <gcrypt.h>
 #include <inttypes.h>
+#include <pthread.h>
+#include <string.h>
+#include <alloca.h>
 
-#ifdef HAVE_PTHREAD_H
-# include <pthread.h>
-#endif
+#include "config.h"
 
-#ifdef HAVE_STRING_H
-# include <string.h>
-#endif
-
-#ifdef HAVE_MALLOC_H
-# include <malloc.h>
-#endif
-
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#elif defined _MSC_VER
-# include <malloc.h>
-# define alloca _alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
-extern "C"
-# endif
-void *alloca (size_t);
-#endif
-
-#ifdef HAVE_ENDIAN_H
-# include <endian.h>
-#elif HAVE_SYS_ENDIAN_H
-# include <sys/endian.h>
-#endif
 #ifndef __BYTE_ORDER
 # ifndef __BIG_ENDIAN
 #  define __BIG_ENDIAN	4321
@@ -153,15 +122,6 @@ extern struct encryption {
 
 #ifndef MAX
 #define MAX(a, b) ((a) > (b)? (a): (b))
-#endif
-
-#if !HAVE_STRERROR
-extern char *sys_errlist[];
-#define strerror(i) sys_errlist[i]
-#endif
-
-#ifndef HAVE_ERRNO_H
-extern int errno;
 #endif
 
 #define likely(x)	__builtin_expect(!!(x), 1)

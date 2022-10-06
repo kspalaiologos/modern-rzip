@@ -17,34 +17,19 @@
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
+#include "config.h"
 
 #include <sys/types.h>
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/statvfs.h>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <unistd.h>
 #include <arpa/inet.h>
-#ifdef HAVE_ERRNO_H
 #include <errno.h>
-#endif
 #include <sys/mman.h>
 #include <sys/time.h>
 #include <termios.h>
-#ifdef HAVE_ENDIAN_H
-# include <endian.h>
-#elif HAVE_SYS_ENDIAN_H
-# include <sys/endian.h>
-#endif
-#ifdef HAVE_ARPA_INET_H
-# include <arpa/inet.h>
-#endif
+#include <arpa/inet.h>
 #include <math.h>
 #include <utime.h>
 
@@ -52,8 +37,6 @@
 #include "runzip.h"
 #include "util.h"
 #include "stream.h"
-
-#include "LzmaDec.h"		// decode for get_fileinfo
 
 #define MAGIC_LEN	(20)	// new v 0.9 magic header
 #define MAGIC_V8_LEN	(18)	// new v 0.8 magic header

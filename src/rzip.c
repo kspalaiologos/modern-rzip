@@ -20,37 +20,17 @@
 */
 /* rzip compression algorithm */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-
-#ifdef HAVE_SYS_MMAN_H
-# include <sys/mman.h>
-#endif
+#define _GNU_SOURCE
+#include <sys/mman.h>
+#include <stdint.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <unistd.h>
 #include <sys/statvfs.h>
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#include <lzo/lzoconf.h>
-#include <lzo/lzo1x.h>
-#ifdef HAVE_ERRNO_H
-# include <errno.h>
-#endif
-#ifdef HAVE_ENDIAN_H
-# include <endian.h>
-#elif HAVE_SYS_ENDIAN_H
-# include <sys/endian.h>
-#endif
-#ifdef HAVE_ARPA_INET_H
-# include <arpa/inet.h>
-#endif
-
+#include <errno.h>
+#include <arpa/inet.h>
+#include "config.h"
 #include "stream.h"
 #include "util.h"
 #include "lrzip_core.h"

@@ -18,37 +18,16 @@
 */
 /* lrzip compression - main program */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-
+#include "config.h"
+#include <stdint.h>
 #include <signal.h>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
-#ifdef HAVE_SYS_RESOURCE_H
-# include <sys/resource.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
-
+#include <unistd.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <termios.h>
-#ifdef HAVE_ENDIAN_H
-# include <endian.h>
-#elif HAVE_SYS_ENDIAN_H
-# include <sys/endian.h>
-#endif
-#ifdef HAVE_ARPA_INET_H
-# include <arpa/inet.h>
-#endif
-
+#include <arpa/inet.h>
 #include <dirent.h>
 #include <getopt.h>
 #include <libgen.h>
@@ -118,14 +97,6 @@ static void usage(void)
 	print_output("	--dictsize		Set lzma Dictionary Size for LZMA ds=0 to 40 expressed as 2<<11, 3<<11, 2<<12, 3<<12...2<<31-1\n");
 	print_output("	--zpaqbs		Set ZPAQ Block Size overriding defaults. 1-11, 2^zpaqbs * 1MB\n");
 	print_output("	--bzip3bs		Set bzip3 Block Size. 1-8, 2^bzip3bs * 1MB.\n");
-	print_output("    Filtering Options:\n");
-	print_output("	--x86			Use x86 filter (for all compression modes)\n");
-	print_output("	--arm			Use ARM filter (for all compression modes)\n");
-	print_output("	--armt			Use ARMT filter (for all compression modes)\n");
-	print_output("	--ppc			Use PPC filter (for all compression modes)\n");
-	print_output("	--sparc			Use SPARC filter (for all compression modes)\n");
-	print_output("	--ia64			Use IA64 filter (for all compression modes)\n");
-	print_output("	--delta	[1..32]		Use Delta filter (for all compression modes) (1 (default) -17, then multiples of 16 to 256)\n");
 	print_output("    Additional Compression Options:\n");
 	print_output("	-C, --comment [comment]	Add a comment up to 64 chars\n");
 	print_output("	-e, --encrypt [=password] password protected sha512/aes128 encryption on compression\n");
@@ -178,7 +149,7 @@ the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n\
 There is NO WARRANTY, to the extent permitted by law.\n", PACKAGE, PACKAGE_VERSION);
 }
 
-static void sighandler(int sig __UNUSED__)
+static void sighandler(int sig)
 {
 	signal(sig, SIG_IGN);
 	signal(SIGTERM, SIG_IGN);
@@ -238,19 +209,6 @@ static void show_summary(void)
 			if (BZIP3_COMPRESS)
 				print_verbose("BZIP3 Compression Block Size: %'d\n",
 					       control->bzip3_bs);
-			if (FILTER_USED) {
-				print_output("Filter Used: %s",
-					((control->filter_flag == FILTER_FLAG_X86) ? "x86" :
-					((control->filter_flag == FILTER_FLAG_ARM) ? "ARM" :
-					((control->filter_flag == FILTER_FLAG_ARMT) ? "ARMT" :
-					((control->filter_flag == FILTER_FLAG_PPC) ? "PPC" :
-					((control->filter_flag == FILTER_FLAG_SPARC) ? "SPARC" :
-					((control->filter_flag == FILTER_FLAG_IA64) ? "IA64" :
-					((control->filter_flag == FILTER_FLAG_DELTA) ? "Delta" : "wtf?"))))))));
-				if (control->filter_flag == FILTER_FLAG_DELTA)
-					print_output(", offset - %'d", control->delta);
-				print_output("\n");
-			}
 			print_verbose("%s Hashing Used\n", control->hash_label);
 			if (ENCRYPT)
 				print_verbose("%s Encryption Used\n", control->enc_label);
@@ -314,19 +272,11 @@ static struct option long_options[] = {
 	{"dictsize",	required_argument,	0,	0},	/* 35 */
 	{"zpaqbs",	required_argument,	0,	0},
 	{"bzip3bs",	required_argument,	0,	0},
-	{"x86",		no_argument,	0,	0},		/* 38 */
-	{"arm",		no_argument,	0,	0},
-	{"armt",	no_argument,	0,	0},
-	{"ppc",		no_argument,	0,	0},		/* 41 */
-	{"sparc",	no_argument,	0,	0},
-	{"ia64",	no_argument,	0,	0},
-	{"delta",	optional_argument,	0,	0},	/* 44 */
 	{0,	0,	0,	0},
 };
 
 /* constants for ease of maintenance in getopt loop */
 #define LONGSTART	34
-#define FILTERSTART	39
 
 static void set_stdout(struct rzip_control *control)
 {
@@ -593,9 +543,6 @@ int main(int argc, char *argv[])
 				fatal("Window must be positive\n");
 			break;
 		case 0:	/* these are long options without a short code */
-			if (FILTER_USED && long_opt_index >= FILTERSTART )
-				print_output("Filter already selected. %s filter ignored.\n", long_options[long_opt_index].name);
-			else {
 				switch(long_opt_index) {
 					/* in case lzma selected, need to reset not lzma flag */
 					case LONGSTART:
@@ -643,40 +590,7 @@ int main(int argc, char *argv[])
 							control->bzip3_bs = ds;
 						}
 						break;
-						/* Filtering */
-					case FILTERSTART:
-						control->filter_flag = FILTER_FLAG_X86;		// x86
-						break;
-					case FILTERSTART+1:
-						control->filter_flag = FILTER_FLAG_ARM;		// ARM
-						break;
-					case FILTERSTART+2:
-						control->filter_flag = FILTER_FLAG_ARMT;	// ARMT
-						break;
-					case FILTERSTART+3:
-						control->filter_flag = FILTER_FLAG_PPC;		// PPC
-						break;
-					case FILTERSTART+4:
-						control->filter_flag = FILTER_FLAG_SPARC;	// SPARC
-						break;
-					case FILTERSTART+5:
-						control->filter_flag = FILTER_FLAG_IA64;	// IA64
-						break;
-					case FILTERSTART+6:
-						control->filter_flag = FILTER_FLAG_DELTA;	// DELTA
-						/* Delta Values are 1-16, then multiples of 16 to 256 */
-						if (optarg) {
-							i=strtol(optarg, &endptr, 10);
-							if (*endptr)
-								fatal("Extra characters after delta offset: \'%s\'\n", endptr);
-							if (i < 1 || i > 32)
-								fatal("Delta offset value must be between 1 and 32\n");
-							control->delta = ( i <= 17 ? i : (i-16) * 16 );
-						} else
-							control->delta = DEFAULT_DELTA;		// 1 is default
-						break;
 				}	//switch
-			}	//if filter used
 			break;	// break out of longopt switch
 		default:	//oops
 			usage();

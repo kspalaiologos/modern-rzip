@@ -31,14 +31,8 @@
  * Peter Hyman, December 2008
  */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-
 #include <stdarg.h>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <ctype.h>
 #include <termios.h>
 
 #ifdef _SC_PAGE_SIZE
