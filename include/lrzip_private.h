@@ -589,4 +589,5 @@ static inline void print_err(const rzip_control *control, unsigned int line, con
 #define print_err(...) do {\
 	print_err(control, __LINE__, __FILE__, __func__, __VA_ARGS__); \
 } while (0)
+
 #endif
