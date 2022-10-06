@@ -196,7 +196,7 @@ static void bzip3_decompress(rzip_control *control, uchar *s_buf, i64 *s_len, i6
 /*
   ***** COMPRESSION FUNCTIONS *****
 
-  ZPAQ, BZIP, GZIP, LZMA, LZ4, BZIP3
+  ZPAQ, BZIP, ZSTD, LZMA, LZ4, BZIP3
 
   try to compress a buffer. If compression fails for whatever reason then
   leave uncompressed. Return the compression type in c_type and resulting
@@ -347,38 +347,24 @@ static int bzip2_compress_buf(rzip_control *control, struct compress_thread *cth
 	return 0;
 }
 
-static int gzip_compress_buf(rzip_control *control, struct compress_thread *cthread)
+static int zstd_compress_buf(rzip_control *control, struct compress_thread *cthread)
 {
-	unsigned long dlen = round_up_page(control, cthread->s_len);
+	unsigned long dlen = round_up_page(control, ZSTD_COMPRESSBOUND(cthread->s_len));
 	uchar *c_buf;
-	int gzip_ret;
+	size_t zstd_ret;
 
 	c_buf = malloc(dlen);
 	if (!c_buf) {
-		print_err("Unable to allocate c_buf in gzip_compress_buf\n");
+		print_err("Unable to allocate c_buf in zstd_compress_buf\n");
 		return -1;
 	}
 
-	gzip_ret = compress2(c_buf, &dlen, cthread->s_buf, cthread->s_len,
-		control->compression_level);
+	zstd_ret = ZSTD_compress(c_buf, dlen, cthread->s_buf, cthread->s_len, control->compression_level);
 
 	/* if compressed data is bigger then original data leave as
 	 * CTYPE_NONE */
 
-	if (gzip_ret == Z_BUF_ERROR) {
-		print_maxverbose("Incompressible block\n");
-		/* Incompressible, leave as CTYPE_NONE */
-		dealloc(c_buf);
-		return 0;
-	}
-
-	if (unlikely(gzip_ret != Z_OK)) {
-		dealloc(c_buf);
-		print_maxverbose("compress2 failed\n");
-		return -1;
-	}
-
-	if (unlikely((i64)dlen >= cthread->c_len)) {
+	if (ZSTD_isError(zstd_ret) || unlikely((i64)dlen >= cthread->c_len)) {
 		print_maxverbose("Incompressible block\n");
 		/* Incompressible, leave as CTYPE_NONE */
 		dealloc(c_buf);
@@ -388,7 +374,7 @@ static int gzip_compress_buf(rzip_control *control, struct compress_thread *cthr
 	cthread->c_len = dlen;
 	dealloc(cthread->s_buf);
 	cthread->s_buf = c_buf;
-	cthread->c_type = CTYPE_GZIP;
+	cthread->c_type = CTYPE_ZSTD;
 	return 0;
 }
 
@@ -522,7 +508,7 @@ static int lz4_compress_buf(rzip_control *control, struct compress_thread *cthre
 /*
   ***** DECOMPRESSION FUNCTIONS *****`
 
-  ZPAQ, BZIP, GZIP, LZMA, LZ4, BZIP3
+  ZPAQ, BZIP, ZSTD, LZMA, LZ4, BZIP3
 
   try to decompress a buffer. Return 0 on success and -1 on failure.
 */
@@ -621,10 +607,10 @@ out:
 	return ret;
 }
 
-static int gzip_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread)
+static int zstd_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread)
 {
 	unsigned long dlen = ucthread->u_len;
-	int ret = 0, gzerr;
+	int ret = 0;
 	uchar *c_buf;
 
 	c_buf = ucthread->s_buf;
@@ -635,8 +621,9 @@ static int gzip_decompress_buf(rzip_control *control, struct uncomp_thread *ucth
 		goto out;
 	}
 
-	gzerr = uncompress(ucthread->s_buf, &dlen, c_buf, ucthread->c_len);
-	if (unlikely(gzerr != Z_OK)) {
+	size_t gzerr = ZSTD_decompress(ucthread->s_buf, dlen, c_buf, ucthread->c_len);
+
+	if (ZSTD_isError(gzerr)) {
 		print_err("Failed to decompress buffer - gzerr=%'d\n", gzerr);
 		ret = -1;
 		goto out;
@@ -1503,8 +1490,8 @@ retry:
 			ret = lz4_compress_buf(control, cti);
 		else if (BZIP2_COMPRESS)
 			ret = bzip2_compress_buf(control, cti);
-		else if (ZLIB_COMPRESS)
-			ret = gzip_compress_buf(control, cti);
+		else if (ZSTD_COMPRESS)
+			ret = zstd_compress_buf(control, cti);
 		else if (ZPAQ_COMPRESS)
 			ret = zpaq_compress_buf(control, cti, current_thread);
 		else if (BZIP3_COMPRESS)
@@ -1738,8 +1725,8 @@ retry:
 			case CTYPE_BZIP2:
 				ret = bzip2_decompress_buf(control, uci);
 				break;
-			case CTYPE_GZIP:
-				ret = gzip_decompress_buf(control, uci);
+			case CTYPE_ZSTD:
+				ret = zstd_decompress_buf(control, uci);
 				break;
 			case CTYPE_ZPAQ:
 				ret = zpaq_decompress_buf(control, uci, current_thread);

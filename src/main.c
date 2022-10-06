@@ -86,12 +86,12 @@ static void usage(void)
 	print_output("Compression Options:\n--------------------\n");
 	print_output("	--lzma			lzma compression (default)\n");
 	print_output("	-b, --bzip2		bzip2 compression\n");
-	print_output("	-g, --gzip		gzip compression using zlib\n");
+	print_output("	-Z, --zstd		zstd compression using zlib\n");
 	print_output("	-l, --lz4		lz4 compression (ultra fast)\n");
 	print_output("	-n, --no-compress	no backend compression - prepare for other compressor\n");
 	print_output("	-z, --zpaq		zpaq compression (best, extreme compression, extremely slow)\n");
 	print_output("	-B, --bzip3		bzip3 compression\n");
-	print_output("	-L#, --level #		set lzma/bzip2/gzip compression level (1-9, default 7)\n");
+	print_output("	-L#, --level #		set lzma/bzip2/zstd compression level (1-9, default 7)\n");
 	print_output("	--fast			alias for -L1\n");
 	print_output("	--best			alias for -L9\n");
 	print_output("	--dictsize		Set lzma Dictionary Size for LZMA ds=0 to 40 expressed as 2<<11, 3<<11, 2<<12, 3<<12...2<<31-1\n");
@@ -191,11 +191,11 @@ static void show_summary(void)
 					(LZMA_COMPRESS ? "LZMA" :
 					(LZ4_COMPRESS ? "LZ4\n" :	// No Threshold testing
 					(BZIP2_COMPRESS ? "BZIP2" :
-					(ZLIB_COMPRESS ? "GZIP\n" :	// No Threshold testing
+					(ZSTD_COMPRESS ? "ZSTD\n" :	// No Threshold testing
 					(ZPAQ_COMPRESS ? "ZPAQ" :
 					(BZIP3_COMPRESS ? "BZIP3" :
 					(NO_COMPRESS ? "RZIP pre-processing only" : "wtf"))))))));
-			if (!LZ4_COMPRESS && !ZLIB_COMPRESS)
+			if (!LZ4_COMPRESS && !ZSTD_COMPRESS)
 				print_verbose(". LZ4 Compressibility testing %s\n", (LZ4_TEST? "enabled" : "disabled"));
 			if (LZ4_TEST && control->threshold != 100)
 				print_verbose("Threshhold limit = %'d\%\n", control->threshold);
@@ -241,7 +241,7 @@ static struct option long_options[] = {
 	{"encrypt",	optional_argument,	0,	'e'},	/* 5 */
 	{"emethod",	required_argument,	0,	'E'},
 	{"force",	no_argument,	0,	'f'},
-	{"gzip",	no_argument,	0,	'g'},
+	{"zstd",	no_argument,	0,	'Z'},
 	{"help",	no_argument,	0,	'h'},
 	{"hash",	optional_argument,	0,	'H'},	/* 10 */
 	{"info",	no_argument,	0,	'i'},
@@ -353,7 +353,7 @@ int main(int argc, char *argv[])
 			if (c == 'b')
 				control->flags |= FLAG_BZIP2_COMPRESS;
 			else if (c == 'g')
-				control->flags |= FLAG_ZLIB_COMPRESS;
+				control->flags |= FLAG_ZSTD_COMPRESS;
 			else if (c == 'l')
 				control->flags |= FLAG_LZ4_COMPRESS;
 			else if (c == 'n')
@@ -654,8 +654,8 @@ int main(int argc, char *argv[])
 	}
 
 	/* if any filter used, disable LZ4 testing or certain compression modes */
-	if ((control->flags & FLAG_THRESHOLD) && (FILTER_USED || ZLIB_COMPRESS || LZ4_COMPRESS || NO_COMPRESS)) {
-		print_output("LZ4 Threshold testing disabled due to Filtering and/or Compression type (gzip, lz4, rzip).\n");
+	if ((control->flags & FLAG_THRESHOLD) && (FILTER_USED || ZSTD_COMPRESS || LZ4_COMPRESS || NO_COMPRESS)) {
+		print_output("LZ4 Threshold testing disabled due to Filtering and/or Compression type (zstd, lz4, rzip).\n");
 		control->flags &= ~FLAG_THRESHOLD;
 	}
 

@@ -1108,8 +1108,8 @@ next_chunk:
 				if (INFO) print_verbose("lz4");
 			} else if (ctype == CTYPE_LZMA) {
 				if (INFO) print_verbose("lzma");
-			} else if (ctype == CTYPE_GZIP) {
-				if (INFO) print_verbose("gzip");
+			} else if (ctype == CTYPE_ZSTD) {
+				if (INFO) print_verbose("zstd");
 			} else if (ctype == CTYPE_ZPAQ) {
 				if (INFO) print_verbose("zpaq");
 			} else if (ctype == CTYPE_BZIP3) {
@@ -1201,8 +1201,8 @@ done:
 			else
 				print_err("Corrupt LZMA Properties\n");
 		}
-		else if (save_ctype == CTYPE_GZIP)
-			print_output("rzip + gzip\n");
+		else if (save_ctype == CTYPE_ZSTD)
+			print_output("rzip + zstd\n");
 		else if (save_ctype == CTYPE_ZPAQ) {
 			print_output("rzip + zpaq ");
 			if (control->zpaq_level)	// update magic with zpaq coding.
