@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 CC=clang
-FLAGS=-g3 -O2 -march=native -mtune=native
+FLAGS=-g3 -O3 -march=native -mtune=native
 CFLAGS=$(FLAGS)
 CXXFLAGS=$(FLAGS)
 
@@ -35,11 +35,13 @@ mrzip: $(SOURCES)
 clean:
 	rm -f mrzip
 
+vendor/cxx_glue.o: vendor/cxx_glue.cpp
+	$(CXX) $(CXXFLAGS) -Ivendor/ppmd_sh/ -Ivendor/ppmd_sh/libpmd -c -o $@ $^
+
 .PHONY: deps
-deps: vendor/zpaq vendor/lz4 vendor/zstd vendor/fast-lzma2 vendor/bzip3
+deps: vendor/cxx_glue.o vendor/zpaq vendor/lz4 vendor/zstd vendor/fast-lzma2 vendor/bzip3
 	$(MAKE) -C vendor/zpaq
 	$(MAKE) -C vendor/lz4
 	$(MAKE) -C vendor/zstd
 	$(MAKE) -C vendor/fast-lzma2
 	cd vendor/bzip3 && ./bootstrap.sh && ./configure && $(MAKE)
-	$(CXX) $(CXXFLAGS) -c -o $(PPMDSH_VARJR1_LIB) vendor/cxx_glue.cpp

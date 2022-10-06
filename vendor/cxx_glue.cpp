@@ -126,51 +126,41 @@ void libzpaq::error(const char* msg) {  // print message and exit
 #include "common.inc"
 #include "coro3b_fake.inc"
 #include "libpmd.inc"
+#include <gcrypt.h>
 
-int g_getc( FILE* f, FILE* g ) { return -1; }
-void g_putc( int c, FILE* f, FILE* g ) { }
+int g_getc( FILE* f, FILE* g ) { return fgetc(f); }
+void g_putc( int c, FILE* f, FILE* g ) { fputc(c, g); }
 
 extern "C" {
     int ppmdsh_varjr1_compress(char * input, int input_len, char * output, int * output_size) {
         ALIGN(4096) pmd_codec C;
-        uint pmd_args[] = { 12 /* Order */, 256 /* Memory */, 1 /* Restore */, 0 };
+        uint pmd_args[] = { 12 /* Order */, 256 /* Memory */, 1 /* Restore */, input_len };
         if(C.Init(0, pmd_args))
             return -1;
-        C.f = C.g = NULL;
-        C.addinp((byte *)input, input_len); 
-        C.addout((byte *)output, *output_size);
-        while(1) {
-            uint l, r = C.coro_call(&C);
-            if( r==1 ) {
-                C.f_quit=1;
-            } else {
-                *output_size = C.getoutsize();
-                if(r == 2) return -1;
-                else break;
-            }
-        }
+		C.f = fmemopen(input, input_len, "rb");
+		C.g = fmemopen(output, *output_size, "wb");
+		C.coro_call(&C);
         C.Quit();
+		fflush(C.g);
+		*output_size = ftell(C.g);
+		fclose(C.f);
+		fclose(C.g);
         return 0;
     }
 
-    int ppmdsh_varjr1_decompress(char * input, int input_len, char * output, int output_size) {
+    int ppmdsh_varjr1_decompress(char * input, int input_len, char * output, int * output_size) {
         ALIGN(4096) pmd_codec C;
-        uint pmd_args[] = { 12 /* Order */, 256 /* Memory */, 1 /* Restore */, 0 };
+        uint pmd_args[] = { 12 /* Order */, 256 /* Memory */, 1 /* Restore */, -1U };
         if(C.Init(1, pmd_args))
             return -1;
-        C.f = C.g = NULL;
-        C.addinp((byte *)input, input_len); 
-        C.addout((byte *)output, output_size);
-        while(1) {
-            uint l, r = C.coro_call(&C);
-            if( r==1 ) {
-                C.f_quit=1;
-            } else {
-                if(r == 2) return -1;
-                else break;
-            }
-        }
+        C.f = fmemopen(input, input_len, "rb");
+		C.g = fmemopen(output, *output_size, "wb");
+        C.coro_call(&C);
         C.Quit();
+		fflush(C.g);
+		*output_size = ftell(C.g);
+		fclose(C.f);
+		fclose(C.g);
         return 0;
     }
 }

@@ -300,7 +300,7 @@ static int zpaq_compress_buf(rzip_control *control, struct compress_thread *cthr
 
 static int ppmdsh_compress_buf(rzip_control *control, struct compress_thread *cthread)
 {
-	u32 dlen = round_up_page(control, cthread->s_len);
+	u32 dlen = round_up_page(control, cthread->s_len + 10000);
 	int ppmdsh_ret;
 	uchar *c_buf;
 
@@ -351,6 +351,7 @@ static int zstd_compress_buf(rzip_control *control, struct compress_thread *cthr
 	}
 
 	zstd_ret = ZSTD_compress(c_buf, dlen, cthread->s_buf, cthread->s_len, control->compression_level);
+	dlen = zstd_ret;
 
 	/* if compressed data is bigger then original data leave as
 	 * CTYPE_NONE */
@@ -510,7 +511,7 @@ out:
 
 static int ppmdsh_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread)
 {
-	u32 dlen = ucthread->u_len;
+	u32 dlen = ucthread->u_len + 10;
 	int ret = 0, bzerr;
 	uchar *c_buf;
 
@@ -522,7 +523,7 @@ static int ppmdsh_decompress_buf(rzip_control *control, struct uncomp_thread *uc
 		goto out;
 	}
 
-	bzerr = ppmdsh_varjr1_decompress(c_buf, ucthread->c_len, ucthread->s_buf, dlen);
+	bzerr = ppmdsh_varjr1_decompress(c_buf, ucthread->c_len, ucthread->s_buf, &dlen);
 	
 	if (unlikely(bzerr != 0)) {
 		print_err("Failed to decompress buffer - bzerr=%'d\n", bzerr);
