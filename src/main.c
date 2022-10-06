@@ -283,7 +283,7 @@ static void set_stdout(struct rzip_control *control)
 	register_outputfile(control, control->msgout);
 }
 
-static const char *loptions = "bBcC:dDe::E:fghH::iKlL:nN:o:O:p:PqR:S:tT::Um:vVw:z?";
+static const char *loptions = "BcC:dDe::E:fhH::iKlL:nN:o:O:p:PqR:sS:tT::Um:vVw:zZ?";
 
 int main(int argc, char *argv[])
 {
