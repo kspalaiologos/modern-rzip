@@ -347,9 +347,9 @@ int main(int argc, char *argv[])
 				fatal("Can only use one of -l, -b, -g, -z, -B or -n\n");
 			/* Select Compression Mode */
 			control->flags &= ~FLAG_NOT_LZMA; 		/* must clear all compressions first */
-			if (c == 'b')
+			if (c == 's')
 				control->flags |= FLAG_PPM_COMPRESS;
-			else if (c == 'g')
+			else if (c == 'Z')
 				control->flags |= FLAG_ZSTD_COMPRESS;
 			else if (c == 'l')
 				control->flags |= FLAG_LZ4_COMPRESS;
