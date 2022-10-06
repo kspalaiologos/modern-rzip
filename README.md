@@ -53,15 +53,8 @@ Many new changes, not in the main branch, including:
 
 ### Download and Build
 `$ git clone https://github.com/pete4abw/lrzip-next`\
-or if you desire to also download the **lrzip-fe** front end\
-`$ git clone --recurse-submodules https://github.com/pete4abw/lrzip-next`
 
-If you forget use --recurse-submodules and want to download lrzip-fe separately, use these commands:
-```
-$ git clone https://github.com/pete4abw/lrzip-next
-$ cd lrzip-next
-$ git submodule update --init (to download lrzip-fe)
-```
+
 **NEW**! Tarballs will now compile from version 0.7.44 onward. gitdesc.sh has been made
 more intelligent! Recommend downloading from master, not from past tags/releases.
 
