@@ -23,11 +23,44 @@
 #include "libpmd.inc"
 
 extern "C" {
-    int ppmdsh_varjr1_compress(char * input, int input_len, char * output, int output_size) {
-
+    int ppmdsh_varjr1_compress(char * input, int input_len, char * output, int * output_size) {
+        ALIGN(4096) pmd_codec C;
+        uint pmd_args[] = { 12 /* Order */, 256 /* Memory */, 1 /* Restore */, 0 };
+        if(C.Init(0, pmd_args))
+            return -1;
+        C.addinp((byte *)input, input_len); 
+        C.addout((byte *)output, *output_size);
+        while(1) {
+            uint l, r = C.coro_call(&C);
+            if( r==1 ) {
+                C.f_quit=1;
+            } else {
+                *output_size = C.getoutsize();
+                if(r == 2) return -1;
+                else break;
+            }
+        }
+        C.Quit();
+        return 0;
     }
 
     int ppmdsh_varjr1_decompress(char * input, int input_len, char * output, int output_size) {
-
+        ALIGN(4096) pmd_codec C;
+        uint pmd_args[] = { 12 /* Order */, 256 /* Memory */, 1 /* Restore */, 0 };
+        if(C.Init(1, pmd_args))
+            return -1;
+        C.addinp((byte *)input, input_len); 
+        C.addout((byte *)output, output_size);
+        while(1) {
+            uint l, r = C.coro_call(&C);
+            if( r==1 ) {
+                C.f_quit=1;
+            } else {
+                if(r == 2) return -1;
+                else break;
+            }
+        }
+        C.Quit();
+        return 0;
     }
 }

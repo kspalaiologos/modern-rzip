@@ -27,9 +27,9 @@ mrzip:
 
 .PHONY: deps
 deps: vendor/zpaq vendor/lz4 vendor/zstd vendor/fast-lzma2 vendor/bzip3
-	make -C vendor/zpaq
-	make -C vendor/lz4
-	make -C vendor/zstd
-	make -C vendor/fast-lzma2
-	cd vendor/bzip3 && ./bootstrap.sh && ./configure && make
+	$(MAKE) -C vendor/zpaq
+	$(MAKE) -C vendor/lz4
+	$(MAKE) -C vendor/zstd
+	$(MAKE) -C vendor/fast-lzma2
+	cd vendor/bzip3 && ./bootstrap.sh && ./configure && $(MAKE)
 	$(CXX) $(CXXFLAGS) -c -o $(PPMDSH_VARJR1_LIB) vendor/ppmd_sh.cpp

@@ -315,23 +315,12 @@ static int bzip2_compress_buf(rzip_control *control, struct compress_thread *cth
 		return -1;
 	}
 
-	bzip2_ret = BZ2_bzBuffToBuffCompress((char *)c_buf, &dlen,
-		(char *)cthread->s_buf, cthread->s_len,
-		control->compression_level, 0, control->compression_level * 10);
+	// TODO: mapping between mem and compression lvl.
+	int res = ppmdsh_varjr1_compress(cthread->s_buf, cthread->s_len, c_buf, &dlen);
 
-	/* if compressed data is bigger then original data leave as
-	 * CTYPE_NONE */
-
-	if (bzip2_ret == BZ_OUTBUFF_FULL) {
-		print_maxverbose("Incompressible block\n");
-		/* Incompressible, leave as CTYPE_NONE */
+	if (unlikely(res != 0)) {
 		dealloc(c_buf);
-		return 0;
-	}
-
-	if (unlikely(bzip2_ret != BZ_OK)) {
-		dealloc(c_buf);
-		print_maxverbose("BZ2 compress failed\n");
+		print_maxverbose("PPMD_sh varJr1 compress failed\n");
 		return -1;
 	}
 
@@ -532,8 +521,9 @@ static int bzip2_decompress_buf(rzip_control *control, struct uncomp_thread *uct
 		goto out;
 	}
 
-	bzerr = BZ2_bzBuffToBuffDecompress((char*)ucthread->s_buf, &dlen, (char*)c_buf, ucthread->c_len, 0, 0);
-	if (unlikely(bzerr != BZ_OK)) {
+	bzerr = ppmdsh_varjr1_decompress(c_buf, ucthread->c_len, ucthread->s_buf, &dlen);
+	
+	if (unlikely(bzerr != 0)) {
 		print_err("Failed to decompress buffer - bzerr=%'d\n", bzerr);
 		ret = -1;
 		goto out;
