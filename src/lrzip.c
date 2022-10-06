@@ -162,14 +162,6 @@ bool write_magic(rzip_control *control)
 		magic[14] = control->hash_code;	/* write whatever hash */
 
 	magic[16] = 0;
-	if (FILTER_USED) {
-		// high order 5 bits for delta offset - 1, 0-255. Low order 3 bits for filter type 1-7
-		// offset bytes will be incremented on decompression
-		if (control->delta > 1)					// only need to do if offset > 1
-			magic[16] = ((control->delta <= 17 ? ((control->delta-1) << 3) :
-				((control->delta / 16) + 16 -1) << 3));	// delta offset-1, if applicable
-		magic[16] += control->filter_flag;			// filter flag
-	}
 
 	/* save LZMA dictionary size */
 	if (ZPAQ_COMPRESS) {
@@ -238,16 +230,6 @@ static void  get_comment(rzip_control *control, int fd_in, unsigned char *magic)
 
 // retriev lzma properties
 
-static void get_lzma_prop(rzip_control *control, unsigned char *magic)
-{
-	int i;
-	/* restore LZMA compression flags only if stored */
-	for (i = 0; i < 5; i++)
-		control->lzma_properties[i] = *magic++;
-
-	return;
-}
-
 static void get_hash_from_magic(rzip_control *control, unsigned char *magic)
 {
 	/* Whether this archive contains hash data at the end or not */
@@ -303,23 +285,6 @@ static void get_expected_size(rzip_control *control, unsigned char *magic)
 	return;
 }
 
-// filter
-
-static void get_filter(rzip_control *control, unsigned char *magic)
-{
-	int i;
-	// any value means filter used
-	if (*magic) {
-		control->filter_flag = *magic & FILTER_MASK;			// Filter flag
-		if (control->filter_flag == FILTER_FLAG_DELTA) {		// Get Delta Offset if needed
-			i = (*magic & DELTA_OFFSET_MASK) >> 3;		// delta offset stored as value-1
-			control->delta = (i <= 16 ? i + 1 : (i-16 + 1) * 16);	// need to restore actual value+1
-		}
-	}
-
-	return;
-}
-
 // retrieve magic for lrzip v6
 
 static void get_magic_v6(rzip_control *control, unsigned char *magic)
@@ -328,9 +293,6 @@ static void get_magic_v6(rzip_control *control, unsigned char *magic)
 
 	if (!magic[22])	// not encrypted
 		get_expected_size(control, magic);
-
-	if (magic[16])	// lzma
-		get_lzma_prop(control, &magic[16]);
 
 	get_hash_from_magic(control, &magic[21]);
 	get_encryption(control, &magic[22], &magic[6]);
@@ -348,13 +310,6 @@ static void get_magic_v7(rzip_control *control, unsigned char *magic)
 		get_expected_size(control, magic);
 	get_encryption(control, &magic[23], &magic[6]);
 
-	// get filter
-	if (magic[16])
-		get_filter(control, &magic[16]);
-
-	if (magic[17])	// lzma
-		get_lzma_prop(control, &magic[17]);
-
 	get_hash_from_magic(control, &magic[22]);
 
 	return;
@@ -370,19 +325,7 @@ static void get_magic_v8(rzip_control *control, unsigned char *magic)
 		get_expected_size(control, magic);
 	get_encryption(control, &magic[15], &magic[6]);
 
-	// get filter
-	if (magic[16])
-		get_filter(control, &magic[16]);
-
-	if (magic[17] > 0 && magic[17] <= 40)	// lzma dictionary
-	{
-		control->dictSize = LZMA2_DIC_SIZE_FROM_PROP(magic[17]);	// decode dictionary
-		control->lzma_properties[0] = LZMA_LC_LP_PB;			// constant for lc, lp, pb 0x5D
-		/* from LzmaDec.c */
-		for (i = 0; i < 4; i++)						// lzma2 to lzma dictionary expansion
-			control->lzma_properties[1 + i] = (Byte)(control->dictSize >> (8 * i));
-	}
-	else if ((magic[17] & 0b11111000) == 0b11111000)
+	if ((magic[17] & 0b11111000) == 0b11111000)
 	{
 		// bzip3 block size stuff.
 		control->bzip3_bs = (magic[17] & 0b00000111) + 1;
@@ -951,7 +894,6 @@ bool get_fileinfo(rzip_control *control)
 	uchar save_ctype = 255;
 	struct stat st;
 	int fd_in;
-	CLzmaProps p; // decode lzma header
 	int lzma_ret;
 
 	// Take out all STDIN checks
@@ -1215,21 +1157,6 @@ done:
 		if (control->compression_level)
 			print_output("Rzip Compression Level: %d, Lrzip-next Compressinn Level: %d\n",
 				control->rzip_compression_level, control->compression_level);
-		/* show filter used */
-		if (FILTER_USED) {
-			print_output("Filter Used: %s",
-					((control->filter_flag == FILTER_FLAG_X86) ? "x86" :
-					((control->filter_flag == FILTER_FLAG_ARM) ? "ARM" :
-					((control->filter_flag == FILTER_FLAG_ARMT) ? "ARMT" :
-					((control->filter_flag == FILTER_FLAG_PPC) ? "PPC" :
-					((control->filter_flag == FILTER_FLAG_SPARC) ? "SPARC" :
-					((control->filter_flag == FILTER_FLAG_IA64) ? "IA64" :
-					((control->filter_flag == FILTER_FLAG_DELTA) ? "Delta" : "wtf?"))))))));
-			if (control->filter_flag == FILTER_FLAG_DELTA)
-				print_output(", offset - %'d", control->delta);
-			print_output("\n");
-		}
-		print_output("\n");
 
 		if (!expected_size)
 			print_output("Due to using %s, expected decompression size not available\n",
@@ -1662,7 +1589,6 @@ bool initialise_control(rzip_control *control)
 	control->filter_flag = 0;		/* filter flag. Default to none */
 	control->compression_level = 7;		/* compression level default */
 	control->rzip_compression_level = 0;	/* rzip compression level default will equal compression level unless explicitly set */
-	control->dictSize = 0;			/* Dictionary Size for lzma. 0 means program decides */
 	control->ramsize = get_ram(control);	/* if something goes wrong, exit from get_ram */
 	control->threshold = 100;		/* default for no threshold limiting */
 	/* for testing single CPU */

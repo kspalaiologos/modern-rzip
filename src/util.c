@@ -108,29 +108,7 @@ void setup_overhead(rzip_control *control)
 	 * compression back-ends that need a lot of ram
 	 * and set Dictionary size */
 	if (LZMA_COMPRESS) {
-		if (control->dictSize == 0) {
-			switch (control->compression_level) {
-			case 1:
-			case 2:
-			case 3: control->dictSize = (1 << (control->compression_level * 2 + 16));
-				break; // 256KB to 4MB
-			case 4:
-			case 5:
-			case 6: control->dictSize = (1 << (control->compression_level + 19));
-				break; // 8MB to 32MB
-			case 7: control->dictSize = (1 << 25);
-				break; // 32MB
-			case 8: control->dictSize = (1 << 26);
-				break; // 64MB
-			case 9: control->dictSize = (1 << 27);
-				break; // 128MB -- this is maximum for 32 bits
-			default: control->dictSize = (1 << 24);
-				break; // 16MB -- should never reach here
-			}
-		}
-		/* LZMA spec shows memory requirements as 6MB, not 4MB and state size
-		 * where default is 16KB */
-		control->overhead = ((i64)control->dictSize * 23 / 2) + (6 * ONE_MB) + 16384;
+		control->overhead = (1 << control->compression_level) * 2 * ONE_MB;
 	} else if (ZPAQ_COMPRESS) {
 		control->zpaq_level = (control->compression_level < 4 ? 3 :
 					(control->compression_level < 8 ? 4 : 5));
@@ -382,13 +360,6 @@ bool read_config(rzip_control *control)
 				control->enc_code = 0;
 				control->flags &= ~FLAG_ENCRYPT;
 			}
-		}
-		else if (isparameter(parameter, "dictionarysize")) {
-			int p;
-			p = atoi(parametervalue);
-			if (p < 0 || p > 40)
-				fatal("CONF FILE error. Dictionary Size must be between 0 and 40.\n");
-			control->dictSize = ((p == 40) ? 0xFFFFFFFF : ((2 | ((p) & 1)) << ((p) / 2 + 11)));	// Slight modification to lzma2 spec 2^31 OK
 		}
 		else if (isparameter(parameter, "locale")) {
 			if (!isparameter(parametervalue, "DEFAULT")) {

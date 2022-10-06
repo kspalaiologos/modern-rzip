@@ -94,7 +94,6 @@ static void usage(void)
 	print_output("	-L#, --level #		set lzma/bzip2/zstd compression level (1-9, default 7)\n");
 	print_output("	--fast			alias for -L1\n");
 	print_output("	--best			alias for -L9\n");
-	print_output("	--dictsize		Set lzma Dictionary Size for LZMA ds=0 to 40 expressed as 2<<11, 3<<11, 2<<12, 3<<12...2<<31-1\n");
 	print_output("	--zpaqbs		Set ZPAQ Block Size overriding defaults. 1-11, 2^zpaqbs * 1MB\n");
 	print_output("	--bzip3bs		Set bzip3 Block Size. 1-8, 2^bzip3bs * 1MB.\n");
 	print_output("    Additional Compression Options:\n");
@@ -201,8 +200,6 @@ static void show_summary(void)
 				print_verbose("Threshhold limit = %'d\%\n", control->threshold);
 			print_verbose("Compression level %'d\n", control->compression_level);
 			print_verbose("RZIP Compression level %'d\n", control->rzip_compression_level);
-			if (LZMA_COMPRESS)
-				print_verbose("Initial LZMA Dictionary Size: %'"PRIu32"\n", control->dictSize );
 			if (ZPAQ_COMPRESS)
 				print_verbose("ZPAQ Compression Level: %'d, ZPAQ initial Block Size: %'d\n",
 					       control->zpaq_level, control->zpaq_bs);
@@ -269,7 +266,6 @@ static struct option long_options[] = {
 	{"fast",	no_argument,	0,	'1'},
 	{"best",	no_argument,	0,	'9'},
 	{"lzma",       	no_argument,	0,	0},		/* 34 - begin long opt index */
-	{"dictsize",	required_argument,	0,	0},	/* 35 */
 	{"zpaqbs",	required_argument,	0,	0},
 	{"bzip3bs",	required_argument,	0,	0},
 	{0,	0,	0,	0},
@@ -549,24 +545,6 @@ int main(int argc, char *argv[])
 						control->flags &= ~FLAG_NOT_LZMA;		/* clear alternate compression flags */
 						break;
 					case LONGSTART+1:
-						/* Dictionary Size,	2<<11, 3<<11
-						 * 			2<<12, 3<<12
-						 * 			...
-						 * 			2<<30, 3<<30
-						 * 			2<<31 - 1
-						 * Uses new lzma2 limited dictionary sizes */
-						if (!LZMA_COMPRESS)
-							print_err("--dictsize option only valid for LZMA compression. Ignorred.\n");
-						else {
-							ds = strtol(optarg, &endptr, 10);
-							if (*endptr)
-								fatal("Extra characters after dictionary size: \'%s\'\n", endptr);
-							if (ds < 0 || ds > 40)
-								fatal("Dictionary Size must be between 0 and 40 for 2^12 (4KB) to 2^31 (4GB)\n");
-							control->dictSize = LZMA2_DIC_SIZE_FROM_PROP(ds);
-						}
-						break;
-					case LONGSTART+2:
 						if (!ZPAQ_COMPRESS)
 							print_err("--zpaqbs option only valid for ZPAQ compression. Ignored.\n");
 						else {
@@ -578,7 +556,7 @@ int main(int argc, char *argv[])
 							control->zpaq_bs = ds;
 						}
 						break;
-					case LONGSTART+3:
+					case LONGSTART+2:
 						if (!BZIP3_COMPRESS)
 							print_err("--bzip3bs option only valid for BZIP3 compression. Ignored.\n");
 						else {
@@ -654,7 +632,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* if any filter used, disable LZ4 testing or certain compression modes */
-	if ((control->flags & FLAG_THRESHOLD) && (FILTER_USED || ZSTD_COMPRESS || LZ4_COMPRESS || NO_COMPRESS)) {
+	if ((control->flags & FLAG_THRESHOLD) && (ZSTD_COMPRESS || LZ4_COMPRESS || NO_COMPRESS)) {
 		print_output("LZ4 Threshold testing disabled due to Filtering and/or Compression type (zstd, lz4, rzip).\n");
 		control->flags &= ~FLAG_THRESHOLD;
 	}

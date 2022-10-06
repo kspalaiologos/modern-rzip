@@ -1029,37 +1029,7 @@ void *open_stream_out(rzip_control *control, int f, unsigned int n, i64 chunk_li
 		bool overhead_set = false;
 
 		int thread_limit = control->threads >= PROCESSORS / 2  ? (control->threads / 2) : control->threads;	// control thread loop
-		uchar exponent = lzma2_prop_from_dic(control->dictSize);	// lzma2 coding for dictsize spec
-		if (LZMA_COMPRESS) {
-			u32 save_dictSize = control->dictSize;	// save dictionary
-			u32 DICTSIZEMIN = (1 << 24);		// minimum dictionary size (16MB)
-			uchar save_exponent = exponent;		// save exponent
-retry_lzma:
-			do {
-				for (control->threads = save_threads; control->threads >= thread_limit; control->threads--) {
-					if (limit >= (control->overhead * control->threads / testbufs)) {
-						overhead_set = true;			// got it!
-						break;
-					}
-				}	// thread loop
-				if (overhead_set == true)
-					break;
-				else {
-					// reduce dictionary size
-					exponent -= 1;					// exponent does not decrememt properly in macro
-					control->dictSize = LZMA2_DIC_SIZE_FROM_PROP(exponent);
-				}
-				setup_overhead(control);				// recompute overhead
-			} while (control->dictSize > DICTSIZEMIN);			// dictionary size loop
-			if (!overhead_set && thread_limit > 1) {			// try again and lower thread_limit
-				thread_limit--;
-				control->dictSize = save_dictSize;			// restore dictionary
-				exponent = save_exponent;				// restore exponent
-				goto retry_lzma;
-			}
-			if (control->dictSize != save_dictSize)
-				print_verbose("Dictionary Size reduced to %'"PRIu32"\n", control->dictSize);
-		} else if (ZPAQ_COMPRESS) {
+		if (ZPAQ_COMPRESS) {
 			/* compute max possible block size */
 			int save_bs = control->zpaq_bs;
 			int ZPAQBSMIN = 4;
@@ -1161,7 +1131,7 @@ retest_malloc:
 			// limit = usable ram / 2
 			// buffer size will be larger of limit/threads OR (overhead-dictsize)/threads
 			// we want buffer to be smaller than overhead but still large in cases of small dictsize and overhead
-			stream_bufsize = round_up_page(control, MAX(limit, control->overhead-control->dictSize)/control->threads);
+			stream_bufsize = round_up_page(control, 0x100000<<control->compression_level);
 		else	// all other methods
 			stream_bufsize = round_up_page(control, MIN(limit, MAX(limit/control->threads, STREAM_BUFSIZE)));
 
