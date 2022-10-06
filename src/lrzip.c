@@ -172,9 +172,7 @@ bool write_magic(rzip_control *control)
 	}
 
 	/* save LZMA dictionary size */
-	if (LZMA_COMPRESS)
-		magic[17] = lzma2_prop_from_dic(control->dictSize);
-	else if (ZPAQ_COMPRESS) {
+	if (ZPAQ_COMPRESS) {
 		/* Save zpaq compression level and block size as one byte */
 		/* High order bits = 128 + (16 * Compression Level 3-5)
 		 * Low order bits = Block Size 1-11
@@ -1195,11 +1193,7 @@ done:
 		else if (save_ctype == CTYPE_LZ4)
 			print_output("rzip + lz4\n");
 		else if (save_ctype == CTYPE_LZMA) {
-			print_output("rzip + lzma -- ");
-			if (lzma_ret=LzmaProps_Decode(&p, control->lzma_properties, sizeof(control->lzma_properties))==SZ_OK)
-				print_output("lc = %'d, lp = %'d, pb = %'d, Dictionary Size = %'d\n", p.lc, p.lp, p.pb, p.dicSize);
-			else
-				print_err("Corrupt LZMA Properties\n");
+			print_output("rzip + lzma");
 		}
 		else if (save_ctype == CTYPE_ZSTD)
 			print_output("rzip + zstd\n");

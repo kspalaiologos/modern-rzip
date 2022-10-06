@@ -320,29 +320,6 @@ static inline unsigned char lzma2_prop_from_dic(u32 dicSize)
 #define TMP_INBUF	(control->flags & FLAG_TMP_INBUF)
 #define ENCRYPT		(control->flags & FLAG_ENCRYPT)
 
-/* Filter flags
- * 0 = none
- * 1 = x86 filter
- * 2 = ASM
- * 3 = ASMT
- * 4 = PPC
- * 5 = SPARC
- * 6 = IA64
- * 7 = Delta
-*/
-#define FILTER_FLAG_X86		1
-#define FILTER_FLAG_ARM		2
-#define FILTER_FLAG_ARMT	3
-#define FILTER_FLAG_PPC		4
-#define FILTER_FLAG_SPARC	5
-#define FILTER_FLAG_IA64	6
-#define FILTER_FLAG_DELTA	7
-#define DEFAULT_DELTA		1				// delta diff is 1 by default
-#define FILTER_USED		(control->filter_flag & 7) 	// lazy for OR of the above 0111b
-#define FILTER_NOT_USED		(!FILTER_USED)
-#define FILTER_MASK		0b00000111			// decode magic
-#define DELTA_OFFSET_MASK	0b11111000
-
 struct sliding_buffer {
 	uchar *buf_low;	/* The low window buffer */
 	uchar *buf_high;/* "" high "" */
@@ -438,8 +415,6 @@ struct rzip_control {
 	i64 maxram;			// the largest chunk of ram to allocate
 	unsigned filter_flag;		// flag for filters
 	unsigned delta;			// delta flag offset (default 1)
-	unsigned char lzma_properties[5];	// lzma properties, encoded
-	u32 dictSize;			// lzma Dictionary size - set in overhead computation
 	unsigned zpaq_level;		// zpaq level
 	unsigned zpaq_bs;		// zpaq default block size
 	unsigned bzip3_bs;      // bzip3 block size
@@ -494,7 +469,6 @@ struct rzip_control {
 	pthread_mutex_t control_lock;
 	unsigned char eof;
 	unsigned char magic_written;
-	bool lzma_prop_set;
 
 	struct checksum checksum;
 

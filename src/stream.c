@@ -31,6 +31,7 @@
 #include <libbz3.h>
 #include <zstd.h>
 #include <lz4.h>
+#include <fast-lzma2.h>
 #include <lz4hc.h>
 #include <errno.h>
 #include <arpa/inet.h>
@@ -380,9 +381,6 @@ static int zstd_compress_buf(rzip_control *control, struct compress_thread *cthr
 
 static int lzma_compress_buf(rzip_control *control, struct compress_thread *cthread, int current_thread)
 {
-	unsigned char lzma_properties[5]; /* lzma properties, encoded */
-	int lzma_level, lzma_ret;
-	size_t prop_size = 5; /* return value for lzma_properties */
 	uchar *c_buf;
 	size_t dlen;
 
@@ -392,75 +390,21 @@ static int lzma_compress_buf(rzip_control *control, struct compress_thread *cthr
 	}
 
 	print_maxverbose("Starting lzma back end compression thread %'d...\n", current_thread);
-retry:
-	dlen = round_up_page(control, cthread->s_len * 1.02); // add 2% for lzma overhead to prevent memory overrun
+	dlen = round_up_page(control, cthread->s_len * 1.05); // add 5% for lzma overhead to prevent memory overrun
 	c_buf = malloc(dlen);
 	if (!c_buf) {
 		print_err("Unable to allocate c_buf in lzma_compress_buf\n");
 		return -1;
 	}
-	/* pass absolute dictionary size and compression level */
-	lzma_ret = LzmaCompress(c_buf, &dlen, cthread->s_buf,
-		(size_t)cthread->s_len, lzma_properties, &prop_size,
-				control->compression_level,
-				control->dictSize, /* dict size. 0 = set default, otherwise control->dictSize */
-				LZMA_LC, LZMA_LP, LZMA_PB, /* lc, lp, pb */
-				(control->compression_level < 7 ? 32 : 64), /* fb */
-				(control->threads > 1 ? 2 : 1));
-				/* LZMA spec has threads = 1 or 2 only. */
-	if (lzma_ret != SZ_OK) {
-		switch (lzma_ret) {
-			case SZ_ERROR_MEM:
-				break;
-			case SZ_ERROR_PARAM:
-				print_err("LZMA Parameter ERROR: %'d. This should not happen.\n", SZ_ERROR_PARAM);
-				break;
-			case SZ_ERROR_OUTPUT_EOF:
-				print_maxverbose("Harmless LZMA Output Buffer Overflow error: %'d. Incompressible block.\n", SZ_ERROR_OUTPUT_EOF);
-				break;
-			case SZ_ERROR_THREAD:
-				print_err("LZMA Multi Thread ERROR: %'d. This should not happen.\n", SZ_ERROR_THREAD);
-				break;
-			default:
-				print_err("Unidentified LZMA ERROR: %'d. This should not happen.\n", lzma_ret);
-				break;
-		}
-		/* can pass -1 if not compressible! Thanks Lasse Collin */
-		dealloc(c_buf);
-		if (lzma_ret == SZ_ERROR_MEM) {
-			if (lzma_level > 1) {
-				lzma_level--;
-				print_verbose("LZMA Warning: %'d. Can't allocate enough RAM for compression window, trying smaller.\n", SZ_ERROR_MEM);
-				goto retry;
-			}
-			/* lzma compress can be fragile on 32 bit. If it fails,
-			 * fall back to bzip2 compression so the block doesn't
-			 * remain uncompressed */
-			print_verbose("Unable to allocate enough RAM for any sized compression window, falling back to bzip2 compression.\n");
-			return bzip2_compress_buf(control, cthread);
-		} else if (lzma_ret == SZ_ERROR_OUTPUT_EOF)
-			return 0;
-		return -1;
-	}
+	
+	size_t lzma_ret = FL2_compress(c_buf, dlen, cthread->s_buf, cthread->s_len, control->compression_level);
 
-	if (unlikely((i64)dlen >= cthread->c_len)) {
+	if (unlikely((i64)dlen >= cthread->c_len) || FL2_isError(lzma_ret)) {
 		/* Incompressible, leave as CTYPE_NONE */
 		print_maxverbose("Incompressible block\n");
 		dealloc(c_buf);
 		return 0;
 	}
-
-	/* Make sure multiple threads don't race on writing lzma_properties */
-	lock_mutex(control, &control->control_lock);
-	if (!control->lzma_prop_set) {
-		memcpy(control->lzma_properties, lzma_properties, 5);
-		control->lzma_prop_set = true;
-		/* Reset the magic written flag so we write it again if we
-		 * get lzma properties and haven't written them yet. */
-		if (TMP_OUTBUF)
-			control->magic_written = 0;
-	}
-	unlock_mutex(control, &control->control_lock);
 
 	cthread->c_len = dlen;
 	dealloc(cthread->s_buf);
@@ -647,7 +591,7 @@ static int lzma_decompress_buf(rzip_control *control, struct uncomp_thread *ucth
 	size_t dlen = ucthread->u_len;
 	int ret = 0, lzmaerr;
 	uchar *c_buf;
-	SizeT c_len = ucthread->c_len;
+	size_t c_len = ucthread->c_len;
 
 	c_buf = ucthread->s_buf;
 	ucthread->s_buf = malloc(round_up_page(control, dlen));
@@ -657,11 +601,10 @@ static int lzma_decompress_buf(rzip_control *control, struct uncomp_thread *ucth
 		goto out;
 	}
 
-	/* With LZMA SDK 4.63 we pass control->lzma_properties
-	 * which is needed for proper uncompress */
-	lzmaerr = LzmaUncompress(ucthread->s_buf, &dlen, c_buf, &c_len, control->lzma_properties, 5);
-	if (unlikely(lzmaerr)) {
-		print_err("Failed to decompress buffer - lzmaerr=%'d\n", lzmaerr);
+	size_t lzmares = FL2_decompress(ucthread->s_buf, round_up_page(control, dlen), c_buf, c_len);
+
+	if (unlikely(FL2_isError(lzmares))) {
+		print_err("Failed to decompress buffer - lzmaerr=%'d\n", lzmares);
 		ret = -1;
 		goto out;
 	}
@@ -1469,14 +1412,6 @@ static void *compthread(void *data)
 	/* Flushing writes to disk frees up any dirty ram, improving chances
 	 * of succeeding in allocating more ram */
 	fsync(ctis->fd);
-
-	/* This is a cludge in case we are compressing to stdout and our first
-	 * stream is not compressed, but subsequent ones are compressed by
-	 * lzma and we can no longer seek back to the beginning of the file
-	 * to write the lzma properties which are effectively always starting
-	 * with 93.= 0x5D. lc=3, lp=0, pb=2 */
-	if (TMP_OUTBUF && LZMA_COMPRESS)
-		control->lzma_properties[0] = LZMA_LC_LP_PB;
 retry:
 	/* Very small buffers have issues to do with minimum amounts of ram
 	 * allocatable to a buffer combined with the MINIMUM_MATCH of rzip
