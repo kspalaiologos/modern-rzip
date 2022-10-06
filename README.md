@@ -4,10 +4,8 @@ modern-rzip - Modernised LRZIP
 A refurbished fork of lrzip.
 
 ### Download and Build
-`$ git clone https://github.com/kspalaiologos/modern-rzip`
-
-### Build
 ```
+% git clone --recurse-submodules https://github.com/kspalaiologos/modern-rzip
 % cd modern-rzip && make -j$(nproc)
 ```
 
@@ -30,9 +28,6 @@ faster compression than standalone compressors and much faster decompression.
 * rzip (pre-processing only)
 
 **modern-rzip**'s memory management scheme permits maximum use of system ram to pre-process files and then compress them.
-
-### Usage and Integration
-See Discussions and Wiki for info.
 
 ### Thanks
 Con Kolivas - the creator of `lrzip`, Peter Hyman - maintainer of the `lrzip-next` fork.
