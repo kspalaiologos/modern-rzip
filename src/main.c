@@ -86,13 +86,13 @@ static void usage(void)
 	print_output("Usage: mrzip [options] <file...>\n");
 	print_output("Compression Options:\n--------------------\n");
 	print_output("	--lzma			lzma compression (default)\n");
-	print_output("	-b, --bzip2		bzip2 compression\n");
+	print_output("	-s, --ppmdsh	ppmd_sh varJr1 compression\n");
 	print_output("	-Z, --zstd		zstd compression using zlib\n");
 	print_output("	-l, --lz4		lz4 compression (ultra fast)\n");
 	print_output("	-n, --no-compress	no backend compression - prepare for other compressor\n");
 	print_output("	-z, --zpaq		zpaq compression (best, extreme compression, extremely slow)\n");
 	print_output("	-B, --bzip3		bzip3 compression\n");
-	print_output("	-L#, --level #		set lzma/bzip2/zstd compression level (1-9, default 7)\n");
+	print_output("	-L#, --level #		set lzma/ppm/zstd compression level (1-9, default 7)\n");
 	print_output("	--fast			alias for -L1\n");
 	print_output("	--best			alias for -L9\n");
 	print_output("	--zpaqbs		Set ZPAQ Block Size overriding defaults. 1-11, 2^zpaqbs * 1MB\n");
@@ -190,7 +190,7 @@ static void show_summary(void)
 			print_verbose("Compression mode is: %s",
 					(LZMA_COMPRESS ? "LZMA" :
 					(LZ4_COMPRESS ? "LZ4\n" :	// No Threshold testing
-					(BZIP2_COMPRESS ? "BZIP2" :
+					(PPM_COMPRESS ? "PPM" :
 					(ZSTD_COMPRESS ? "ZSTD\n" :	// No Threshold testing
 					(ZPAQ_COMPRESS ? "ZPAQ" :
 					(BZIP3_COMPRESS ? "BZIP3" :
@@ -231,7 +231,7 @@ static void show_summary(void)
 }
 
 static struct option long_options[] = {
-	{"bzip2",	no_argument,	0,	'b'},		/* 0 */
+	{"ppmdsh",	no_argument,	0,	's'},		/* 0 */
 	{"check",	no_argument,	0,	'c'},
 	{"comment",	required_argument, 0,	'C'},
 	{"decompress",	no_argument,	0,	'd'},
@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
 			/* Select Compression Mode */
 			control->flags &= ~FLAG_NOT_LZMA; 		/* must clear all compressions first */
 			if (c == 'b')
-				control->flags |= FLAG_BZIP2_COMPRESS;
+				control->flags |= FLAG_PPM_COMPRESS;
 			else if (c == 'g')
 				control->flags |= FLAG_ZSTD_COMPRESS;
 			else if (c == 'l')

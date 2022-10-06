@@ -242,11 +242,11 @@ bool read_config(rzip_control *control)
 				fatal("CONF.FILE error. RZIP Compression Level must between 1 and 9\n");
 		}
 		else if (isparameter(parameter, "compressionmethod")) {
-			/* valid are rzip, zstd, bzip2, lz4, lzma (default), and zpaq */
+			/* valid are rzip, zstd, ppmdsh, lz4, lzma (default), and zpaq */
 			if (control->flags & FLAG_NOT_LZMA)
 				fatal("CONF.FILE error. Can only specify one compression method\n");
-			if (isparameter(parametervalue, "bzip2"))
-				control->flags |= FLAG_BZIP2_COMPRESS;
+			if (isparameter(parametervalue, "ppmdsh"))
+				control->flags |= FLAG_PPM_COMPRESS;
 			else if (isparameter(parametervalue, "zstd"))
 				control->flags |= FLAG_ZSTD_COMPRESS;
 			else if (isparameter(parametervalue, "lz4"))

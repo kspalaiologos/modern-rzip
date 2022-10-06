@@ -1043,8 +1043,8 @@ next_chunk:
 			if (INFO) print_verbose("%'d\t", block);
 			if (ctype == CTYPE_NONE) {
 				if (INFO) print_verbose("none");
-			} else if (ctype == CTYPE_BZIP2) {
-				if (INFO) print_verbose("bzip2");
+			} else if (ctype == CTYPE_PPM) {
+				if (INFO) print_verbose("ppmdsh");
 			} else if (ctype == CTYPE_LZ4) {
 				if (INFO) print_verbose("lz4");
 			} else if (ctype == CTYPE_LZMA) {
@@ -1131,8 +1131,8 @@ done:
 		print_output("Compression Method: ");
 		if (save_ctype == CTYPE_NONE)
 			print_output("rzip alone\n");
-		else if (save_ctype == CTYPE_BZIP2)
-			print_output("rzip + bzip2\n");
+		else if (save_ctype == CTYPE_PPM)
+			print_output("rzip + ppmdsh\n");
 		else if (save_ctype == CTYPE_LZ4)
 			print_output("rzip + lz4\n");
 		else if (save_ctype == CTYPE_LZMA) {

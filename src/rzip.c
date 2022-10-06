@@ -58,7 +58,7 @@ struct hash_entry {
 	tag t;
 };
 
-/* Levels control hashtable size and bzip2 level. */
+/* Levels control hashtable size and level. */
 static struct level {
 	unsigned long mb_used;
 	unsigned initial_freq;

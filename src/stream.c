@@ -298,10 +298,10 @@ static int zpaq_compress_buf(rzip_control *control, struct compress_thread *cthr
 	return 0;
 }
 
-static int bzip2_compress_buf(rzip_control *control, struct compress_thread *cthread)
+static int ppmdsh_compress_buf(rzip_control *control, struct compress_thread *cthread)
 {
 	u32 dlen = round_up_page(control, cthread->s_len);
-	int bzip2_ret;
+	int ppmdsh_ret;
 	uchar *c_buf;
 
 	if (LZ4_TEST) {
@@ -311,7 +311,7 @@ static int bzip2_compress_buf(rzip_control *control, struct compress_thread *cth
 
 	c_buf = malloc(dlen);
 	if (!c_buf) {
-		print_err("Unable to allocate c_buf in bzip2_compress_buf\n");
+		print_err("Unable to allocate c_buf in ppmdsh_compress_buf\n");
 		return -1;
 	}
 
@@ -334,7 +334,7 @@ static int bzip2_compress_buf(rzip_control *control, struct compress_thread *cth
 	cthread->c_len = dlen;
 	dealloc(cthread->s_buf);
 	cthread->s_buf = c_buf;
-	cthread->c_type = CTYPE_BZIP2;
+	cthread->c_type = CTYPE_PPM;
 	return 0;
 }
 
@@ -507,7 +507,7 @@ out:
 	return ret;
 }
 
-static int bzip2_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread)
+static int ppmdsh_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread)
 {
 	u32 dlen = ucthread->u_len;
 	int ret = 0, bzerr;
@@ -1384,8 +1384,8 @@ retry:
 			ret = lzma_compress_buf(control, cti, current_thread);
 		else if (LZ4_COMPRESS)
 			ret = lz4_compress_buf(control, cti);
-		else if (BZIP2_COMPRESS)
-			ret = bzip2_compress_buf(control, cti);
+		else if (PPM_COMPRESS)
+			ret = ppmdsh_compress_buf(control, cti);
 		else if (ZSTD_COMPRESS)
 			ret = zstd_compress_buf(control, cti);
 		else if (ZPAQ_COMPRESS)
@@ -1618,8 +1618,8 @@ retry:
 			case CTYPE_LZ4:
 				ret = lz4_decompress_buf(control, uci);
 				break;
-			case CTYPE_BZIP2:
-				ret = bzip2_decompress_buf(control, uci);
+			case CTYPE_PPM:
+				ret = ppmdsh_decompress_buf(control, uci);
 				break;
 			case CTYPE_ZSTD:
 				ret = zstd_decompress_buf(control, uci);
