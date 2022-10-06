@@ -26,9 +26,10 @@ FLZMA2_LIB=-Ivendor/fast-lzma2/ vendor/fast-lzma2/libfast-lzma2.a
 BZIP3_LIB=-Ivendor/bzip3/include vendor/bzip3/src/libbz3.c
 PPMDSH_VARJR1_LIB=vendor/cxx_glue.o -Ivendor/ppmd_sh/ -Ivendor/ppmd_sh/libpmd
 LIBS=$(ZPAQ_LIB) $(LZ4_LIB) $(FLZMA2_LIB) $(ZSTD_LIB) $(BZIP3_LIB) $(PPMDSH_VARJR1_LIB)
+SOURCES=$(wildcard src/*.c)
 
-mrzip:
-	$(CC) $(CFLAGS) -Iinclude -o $@ src/*.c $(LIBS) -lstdc++ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
+mrzip: $(SOURCES)
+	$(CC) $(CFLAGS) -Iinclude -o $@ $^ $(LIBS) -lstdc++ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
 
 .PHONY: clean
 clean:
