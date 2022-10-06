@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 CC=clang
-FLAGS=-g3 -O3 -march=native -mtune=native
+FLAGS=-s -O3 -march=native -mtune=native
 CFLAGS=$(FLAGS)
 CXXFLAGS=$(FLAGS)
 
