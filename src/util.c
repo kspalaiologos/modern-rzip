@@ -35,20 +35,18 @@
 #include <ctype.h>
 #include <termios.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include "lrzip_private.h"
+#include "util.h"
+
 #ifdef _SC_PAGE_SIZE
 # define PAGE_SIZE (sysconf(_SC_PAGE_SIZE))
 #else
 # define PAGE_SIZE (4096)
-#endif
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include "lrzip_private.h"
-#include "util.h"
-#ifdef HAVE_CTYPE_H
-# include <ctype.h>
 #endif
 
 /* Macros for testing parameters */

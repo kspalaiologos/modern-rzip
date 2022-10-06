@@ -20,41 +20,19 @@
 /* multiplex N streams into a file - the streams are passed
    through different compressors */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
+#include "config.h"
 
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_RESOURCE_H
-# include <sys/resource.h>
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/resource.h>
+#include <unistd.h>
 #include <sys/statvfs.h>
 #include <pthread.h>
-#include <bzlib.h>
-#include <zlib.h>
-#include <lzo/lzoconf.h>
-#include <lzo/lzo1x.h>
 #include <libbz3.h>
+#include <zstd.h>
 #include <lz4.h>
-#ifdef HAVE_ERRNO_H
-# include <errno.h>
-#endif
-#ifdef HAVE_ENDIAN_H
-# include <endian.h>
-#elif HAVE_SYS_ENDIAN_H
-# include <sys/endian.h>
-#endif
-#ifdef HAVE_ARPA_INET_H
-# include <arpa/inet.h>
-#endif
+#include <errno.h>
+#include <arpa/inet.h>
 
 #include "util.h"
 #include "lrzip_core.h"
@@ -552,7 +530,7 @@ out_free:
 
   try to decompress a buffer. Return 0 on success and -1 on failure.
 */
-static int bzip3_decompress_buf(rzip_control *control __UNUSED__, struct uncomp_thread *ucthread, int current_thread)
+static int bzip3_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread, int current_thread)
 {
 	i64 dlen = ucthread->u_len;
 	uchar *c_buf;
@@ -582,7 +560,7 @@ out:
 	return ret;
 }
 
-static int zpaq_decompress_buf(rzip_control *control __UNUSED__, struct uncomp_thread *ucthread, int current_thread)
+static int zpaq_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread, int current_thread)
 {
 	i64 dlen = ucthread->u_len;
 	uchar *c_buf;
@@ -613,7 +591,7 @@ out:
 	return ret;
 }
 
-static int bzip2_decompress_buf(rzip_control *control __UNUSED__, struct uncomp_thread *ucthread)
+static int bzip2_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread)
 {
 	u32 dlen = ucthread->u_len;
 	int ret = 0, bzerr;
@@ -647,7 +625,7 @@ out:
 	return ret;
 }
 
-static int gzip_decompress_buf(rzip_control *control __UNUSED__, struct uncomp_thread *ucthread)
+static int gzip_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread)
 {
 	unsigned long dlen = ucthread->u_len;
 	int ret = 0, gzerr;
@@ -718,7 +696,7 @@ out:
 	return ret;
 }
 
-static int lzo_decompress_buf(rzip_control *control __UNUSED__, struct uncomp_thread *ucthread)
+static int lzo_decompress_buf(rzip_control *control, struct uncomp_thread *ucthread)
 {
 	lzo_uint dlen = ucthread->u_len;
 	int ret = 0, lzerr;
