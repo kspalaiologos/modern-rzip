@@ -1,0 +1,3 @@
+[submodule "zpaq"]
+	path = zpaq
+	url = https://github.com/zpaq/zpaq
