@@ -334,8 +334,8 @@ int main(int argc, char *argv[])
 
 	while ((c = getopt_long(argc, argv, loptions, long_options, &long_opt_index)) != -1) {
 		switch (c) {
-		case 'b':
-		case 'g':
+		case 's':
+		case 'Z':
 		case 'l':
 		case 'n':
 		case 'z':
