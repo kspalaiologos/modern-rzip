@@ -2,3 +2,5 @@
 *.o
 *.lo
 config.*
+
+mrzip
