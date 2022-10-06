@@ -2,6 +2,7 @@
    Copyright (C) 2006-2016, 2021 Con Kolivas
    Copyright (C) 2011, 2019, 2020, 2022 Peter Hyman
    Copyright (C) 1998-2003 Andrew Tridgell
+   Copyright (C) 2022 Kamila Szewczyk
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +17,6 @@
    You should have received a copy of the GNU General Public License
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-/* lrzip compression - main program */
 
 #include "config.h"
 #include <stdint.h>
@@ -80,9 +80,10 @@ static void usage(void)
 	print_output("%s version %s\n", PACKAGE, PACKAGE_VERSION);
 	print_output("Copyright (C) Con Kolivas 2006-2021\n");
 	print_output("Copyright (C) Peter Hyman 2007-2022\n");
+	print_output("Copyright (C) Kamila Szewczyk 2022\n");
 	print_output("Based on rzip ");
 	print_output("Copyright (C) Andrew Tridgell 1998-2003\n\n");
-	print_output("Usage: lrzip-next [options] <file...>\n");
+	print_output("Usage: mrzip [options] <file...>\n");
 	print_output("Compression Options:\n--------------------\n");
 	print_output("	--lzma			lzma compression (default)\n");
 	print_output("	-b, --bzip2		bzip2 compression\n");

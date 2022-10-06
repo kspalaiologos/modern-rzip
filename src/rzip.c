@@ -1,6 +1,7 @@
 /*
    Copyright (C) 2006-2016,2018 Con Kolivas
    Copyright (C) 1998 Andrew Tridgell
+   Copyright (C) 2022 Kamila Szewczyk
 
    Modified to use flat hash, memory limit and variable hash culling
    by Rusty Russell copyright (C) 2003.

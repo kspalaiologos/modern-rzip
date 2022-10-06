@@ -3,6 +3,7 @@
    Copyright (C) 2011 Serge Belyshev
    Copyright (C) 2011, 2019, 2020, 2021 Peter Hyman
    Copyright (C) 1998 Andrew Tridgell
+   Copyright (C) 2022 Kamila Szewczyk
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
