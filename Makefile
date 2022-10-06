@@ -23,7 +23,7 @@ PPMDSH_VARJR1_LIB=vendor/ppmd_sh.o -Ivendor/ppmd_sh/ -Ivendor/ppmd_sh/libpmd
 
 mrzip:
 	$(CC) $(CFLAGS) -o $@ src/*.c -Iinclude -pthread -lpthread \
-		$(ZPAQ_LIB) $(LZ4_LIB) $(FLZMA2_LIB) $(ZSTD_LIB) $(BZIP3_LIB) $(PPMDSH_VARJR1_LIB) -lm -static
+		$(ZPAQ_LIB) $(LZ4_LIB) $(FLZMA2_LIB) $(ZSTD_LIB) $(BZIP3_LIB) $(PPMDSH_VARJR1_LIB) -lstdc++ -lm -static
 
 .PHONY: deps
 deps: vendor/zpaq vendor/lz4 vendor/zstd vendor/fast-lzma2 vendor/bzip3

@@ -521,7 +521,7 @@ static int bzip2_decompress_buf(rzip_control *control, struct uncomp_thread *uct
 		goto out;
 	}
 
-	bzerr = ppmdsh_varjr1_decompress(c_buf, ucthread->c_len, ucthread->s_buf, &dlen);
+	bzerr = ppmdsh_varjr1_decompress(c_buf, ucthread->c_len, ucthread->s_buf, dlen);
 	
 	if (unlikely(bzerr != 0)) {
 		print_err("Failed to decompress buffer - bzerr=%'d\n", bzerr);
