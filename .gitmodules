@@ -7,3 +7,9 @@
 [submodule "vendor/fast-lzma2"]
 	path = vendor/fast-lzma2
 	url = https://github.com/conor42/fast-lzma2
+[submodule "vendor/zstd"]
+	path = vendor/zstd
+	url = https://github.com/facebook/zstd
+[submodule "vendor/bzip3"]
+	path = vendor/bzip3
+	url = https://github.com/kspalaiologos/bzip3
