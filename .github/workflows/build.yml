@@ -3,14 +3,9 @@ name: Build
 on: [ push, pull_request ]
 
 jobs:
-  build:
-    name: Build Matrix
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [ ubuntu-latest ]
-        compiler: [ clang, gcc ]
-    runs-on: ${{ matrix.platform }}
+  build-gcc:
+    name: Build
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
@@ -18,28 +13,54 @@ jobs:
     - name: Configure
       run: |
         sudo apt update -q -y
-        sudo apt install -q -y clang gcc make libgcrypt-dev libgpg-error-dev
-        ./configure CC=${{ matrix.compiler }}
+        sudo apt install -q -y gcc make libgcrypt-dev libgpg-error-dev
+        ./configure CC=gcc CXX=g++
         cat Makefile
     - name: Make
       run: make -j$(nproc)
   
-  build-macos:
-    name: Build Matrix
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [ macos-latest ]
-        compiler: [ clang, gcc ]
-    runs-on: ${{ matrix.platform }}
+  build-clang:
+    name: Build
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
     - name: Configure
       run: |
-        brew install llvm gcc make libgcrypt libgpg-error
-        ./configure CC=${{ matrix.compiler }}
+        sudo apt update -q -y
+        sudo apt install -q -y clang make libgcrypt-dev libgpg-error-dev
+        ./configure CC=clang CXX=clang++
+        cat Makefile
+    - name: Make
+      run: make -j$(nproc)
+  
+  build-macos:
+    name: Build Matrix
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Configure
+      run: |
+        brew install llvm make libgcrypt libgpg-error
+        ./configure CC=clang CXX=clang++
+        cat Makefile
+    - name: Make
+      run: make -j$(nproc)
+  
+  build-macos-gcc:
+    name: Build Matrix
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Configure
+      run: |
+        brew install gcc make libgcrypt libgpg-error
+        ./configure CC=gcc CXX=g++
         cat Makefile
     - name: Make
       run: make -j$(nproc)
@@ -49,7 +70,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: [ clang, gcc ]
         arch: [ aarch64, s390x, ppc64le ]
     runs-on: ubuntu-latest
     steps:
@@ -66,10 +86,38 @@ jobs:
           --volume "${PWD}:/modern-rzip"
         install: |
           apt update -q -y
-          apt install -q -y clang gcc make libgcrypt-dev libgpg-error-dev
+          apt install -q -y clang make libgcrypt-dev libgpg-error-dev
         run: |
           cd /modern-rzip
-          ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }}
+          ./configure CC=clang CXX=clang++
+          cat Makefile
+          make
+  
+  build-archs-gcc:
+    name: Build Matrix for non-x86 architectures
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ aarch64, s390x, ppc64le ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - uses: uraimo/run-on-arch-action@v2
+      name: Run in the container
+      with:
+        arch: ${{ matrix.arch }}
+        distro: stretch
+        shell: /bin/sh
+        dockerRunArgs: |
+          --volume "${PWD}:/modern-rzip"
+        install: |
+          apt update -q -y
+          apt install -q -y gcc make libgcrypt-dev libgpg-error-dev
+        run: |
+          cd /modern-rzip
+          ./configure CC=gcc CXX=g++
           cat Makefile
           make
 
