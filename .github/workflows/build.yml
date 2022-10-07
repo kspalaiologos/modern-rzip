@@ -4,7 +4,7 @@ on: [ push, pull_request ]
 
 jobs:
   build-gcc:
-    name: Build
+    name: Ubuntu GCC
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -20,7 +20,7 @@ jobs:
       run: make -j$(nproc)
   
   build-clang:
-    name: Build
+    name: Ubuntu Clang
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -36,7 +36,7 @@ jobs:
       run: make -j$(nproc)
   
   build-macos:
-    name: Build Matrix
+    name: MacOS Clang
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
@@ -51,7 +51,7 @@ jobs:
       run: make -j$(nproc)
   
   build-macos-gcc:
-    name: Build Matrix
+    name: MacOS GCC
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
