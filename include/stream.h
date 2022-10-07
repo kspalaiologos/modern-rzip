@@ -18,8 +18,8 @@
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LRZIP_STREAM_H
-#define LRZIP_STREAM_H
+#ifndef MRZIP_STREAM_H
+#define MRZIP_STREAM_H
 
 #include "lrzip_private.h"
 #include <pthread.h>

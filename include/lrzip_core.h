@@ -17,8 +17,8 @@
    You should have received a copy of the GNU General Public License
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef LRZIP_CORE_H
-#define LRZIP_CORE_H
+#ifndef MRZIP_CORE_H
+#define MRZIP_CORE_H
 
 #include "lrzip_private.h"
 

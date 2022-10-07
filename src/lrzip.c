@@ -141,7 +141,7 @@ i64 nloops(i64 seconds, uchar *b1, uchar *b2)
 bool write_magic(rzip_control *control)
 {
 	unsigned char magic[MAGIC_LEN] = {
-		'L', 'R', 'Z', 'I', LRZIP_MAJOR_VERSION, LRZIP_MINOR_VERSION
+		'L', 'R', 'Z', 'I', MRZIP_MAJOR_VERSION, MRZIP_MINOR_VERSION
 	};
 
 	 /* In encrypted files, the size is left unknown

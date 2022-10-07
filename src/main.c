@@ -131,7 +131,7 @@ default chosen by heuristic dependent on ram and chosen compression\n");
 	print_output("	-p, --threads value	Set processor count to override number of threads\n");
 	print_output("	-v[v], --verbose	Increase verbosity\n");
 	print_output("	-V, --version		display software version and license\n");
-	print_output("\nLRZIP=NOCONFIG environment variable setting can be used to bypass lrzip.conf.\n\
+	print_output("\nMRZIP=NOCONFIG environment variable setting can be used to bypass lrzip.conf.\n\
 TMP environment variable will be used for storage of temporary files when needed.\n\
 TMPDIR may also be stored in lrzip.conf file.\n\
 \nIf no filenames or \"-\" is specified, stdin/out will be used.\n");
@@ -314,13 +314,13 @@ int main(int argc, char *argv[])
 
 	/* Get Preloaded Defaults from lrzip.conf
 	 * Look in ., $HOME/.lrzip/, /etc/lrzip.
-	 * If LRZIP=NOCONFIG is set, then ignore config
+	 * If MRZIP=NOCONFIG is set, then ignore config
 	 * If lrzip.conf sets a compression mode, options_file will be true.
 	 * This will allow for a test to permit an override of compression mode.
 	 * If there is an override, then all compression settings will be reset
 	 * and command line switches will prevail, including for --lzma.
 	 */
-	eptr = getenv("LRZIP");
+	eptr = getenv("MRZIP");
 	if (eptr == NULL)
 		options_file = read_config(control);
 	else if (!strstr(eptr,"NOCONFIG"))

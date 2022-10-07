@@ -18,8 +18,8 @@
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef LRZIP_PRIV_H
-#define LRZIP_PRIV_H
+#ifndef MRZIP_PRIV_H
+#define MRZIP_PRIV_H
 
 #define NUM_STREAMS 2
 #define ONE_MB 1048576
