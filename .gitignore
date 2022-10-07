@@ -1,7 +1,6 @@
 *~
 *.o
 *.lo
-config.*
 
 mrzip
 
@@ -10,3 +9,7 @@ mrzip
 Makefile
 
 autom4te.cache/
+
+config.log
+
+config.status
