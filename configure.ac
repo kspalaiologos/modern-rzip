@@ -1,7 +1,7 @@
 
 AC_PREREQ([2.69])
 AC_INIT([modern-rzip], [v0.9], [kspalaiologos@gmail.com])
-AC_COPYRIGHT([Copyright (C) Kamila Szewczyk, 2020. Licensed under the terms of MIT license.])
+AC_COPYRIGHT([Copyright (C) Kamila Szewczyk, 2022. Licensed under the terms of GPLv2 license.])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux])
 
