@@ -33,8 +33,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Configure
       run: |
-        brew install gcc make libgcrypt libgpg-error
-        brew install --with-clang llvm
+        brew install llvm gcc make libgcrypt libgpg-error
         ./configure CC=${{ matrix.compiler }}
     - name: Make
       run: make -j$(nproc)
