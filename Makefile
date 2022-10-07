@@ -56,3 +56,7 @@ $(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
 .PHONY: clean
 clean:
 	@rm -f $(PROGRAM) $(MRZIP_OBJECTS) $(MRZIP_LIBS)
+
+.PHONY: format
+format:
+	clang-format -i src/*.c include/*.h vendor/*.cpp
