@@ -3873,13 +3873,13 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wno-pointer-sign" >&5
 printf %s "checking whether C compiler accepts -Wno-pointer-sign... " >&6; }
-if test ${ax_cv_check_cflags___Wno_pointer_sign+y}
+if test ${ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pointer_sign+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
 
   ax_check_save_flags=$CFLAGS
-  CFLAGS=" -Wno-pointer-sign"
+  CFLAGS="-Werror -Wall -Wextra -Wno-pointer-sign"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -3893,31 +3893,31 @@ main (void)
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"
 then :
-  ax_cv_check_cflags___Wno_pointer_sign=yes
+  ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pointer_sign=yes
 else $as_nop
-  ax_cv_check_cflags___Wno_pointer_sign=no
+  ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pointer_sign=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
   CFLAGS=$ax_check_save_flags
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Wno_pointer_sign" >&5
-printf "%s\n" "$ax_cv_check_cflags___Wno_pointer_sign" >&6; }
-if test "x$ax_cv_check_cflags___Wno_pointer_sign" = xyes
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pointer_sign" >&5
+printf "%s\n" "$ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pointer_sign" >&6; }
+if test "x$ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pointer_sign" = xyes
 then :
   CFLAGS="$CFLAGS -Wno-pointer-sign"
 else $as_nop
-  -Werror -Wall -Wextra
+  :
 fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wno-pragma-pack" >&5
 printf %s "checking whether C compiler accepts -Wno-pragma-pack... " >&6; }
-if test ${ax_cv_check_cflags___Wno_pragma_pack+y}
+if test ${ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pragma_pack+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
 
   ax_check_save_flags=$CFLAGS
-  CFLAGS=" -Wno-pragma-pack"
+  CFLAGS="-Werror -Wall -Wextra -Wno-pragma-pack"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -3931,20 +3931,20 @@ main (void)
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"
 then :
-  ax_cv_check_cflags___Wno_pragma_pack=yes
+  ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pragma_pack=yes
 else $as_nop
-  ax_cv_check_cflags___Wno_pragma_pack=no
+  ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pragma_pack=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
   CFLAGS=$ax_check_save_flags
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Wno_pragma_pack" >&5
-printf "%s\n" "$ax_cv_check_cflags___Wno_pragma_pack" >&6; }
-if test "x$ax_cv_check_cflags___Wno_pragma_pack" = xyes
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pragma_pack" >&5
+printf "%s\n" "$ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pragma_pack" >&6; }
+if test "x$ax_cv_check_cflags__Werror__Wall__Wextra__Wno_pragma_pack" = xyes
 then :
   CFLAGS="$CFLAGS -Wno-pragma-pack"
 else $as_nop
-  -Werror -Wall -Wextra
+  :
 fi
 
 
@@ -4619,13 +4619,13 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C++ compiler accepts -Wno-pointer-sign" >&5
 printf %s "checking whether C++ compiler accepts -Wno-pointer-sign... " >&6; }
-if test ${ax_cv_check_cxxflags___Wno_pointer_sign+y}
+if test ${ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pointer_sign+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
 
   ax_check_save_flags=$CXXFLAGS
-  CXXFLAGS=" -Wno-pointer-sign"
+  CXXFLAGS="-Werror -Wall -Wextra -Wno-pointer-sign"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -4639,31 +4639,31 @@ main (void)
 _ACEOF
 if ac_fn_cxx_try_compile "$LINENO"
 then :
-  ax_cv_check_cxxflags___Wno_pointer_sign=yes
+  ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pointer_sign=yes
 else $as_nop
-  ax_cv_check_cxxflags___Wno_pointer_sign=no
+  ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pointer_sign=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
   CXXFLAGS=$ax_check_save_flags
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cxxflags___Wno_pointer_sign" >&5
-printf "%s\n" "$ax_cv_check_cxxflags___Wno_pointer_sign" >&6; }
-if test "x$ax_cv_check_cxxflags___Wno_pointer_sign" = xyes
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pointer_sign" >&5
+printf "%s\n" "$ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pointer_sign" >&6; }
+if test "x$ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pointer_sign" = xyes
 then :
   CXXFLAGS="$CXXFLAGS -Wno-pointer-sign"
 else $as_nop
-  -Werror -Wall -Wextra
+  :
 fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C++ compiler accepts -Wno-pragma-pack" >&5
 printf %s "checking whether C++ compiler accepts -Wno-pragma-pack... " >&6; }
-if test ${ax_cv_check_cxxflags___Wno_pragma_pack+y}
+if test ${ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pragma_pack+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
 
   ax_check_save_flags=$CXXFLAGS
-  CXXFLAGS=" -Wno-pragma-pack"
+  CXXFLAGS="-Werror -Wall -Wextra -Wno-pragma-pack"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -4677,20 +4677,20 @@ main (void)
 _ACEOF
 if ac_fn_cxx_try_compile "$LINENO"
 then :
-  ax_cv_check_cxxflags___Wno_pragma_pack=yes
+  ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pragma_pack=yes
 else $as_nop
-  ax_cv_check_cxxflags___Wno_pragma_pack=no
+  ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pragma_pack=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
   CXXFLAGS=$ax_check_save_flags
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cxxflags___Wno_pragma_pack" >&5
-printf "%s\n" "$ax_cv_check_cxxflags___Wno_pragma_pack" >&6; }
-if test "x$ax_cv_check_cxxflags___Wno_pragma_pack" = xyes
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pragma_pack" >&5
+printf "%s\n" "$ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pragma_pack" >&6; }
+if test "x$ax_cv_check_cxxflags__Werror__Wall__Wextra__Wno_pragma_pack" = xyes
 then :
   CXXFLAGS="$CXXFLAGS -Wno-pragma-pack"
 else $as_nop
-  -Werror -Wall -Wextra
+  :
 fi
 
   ax_cxx_compile_alternatives="14 1y"    ax_cxx_compile_cxx14_required=true
