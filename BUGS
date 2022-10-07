@@ -1,7 +1,7 @@
 BUGME
 
 Issues can be reported/tracked here:
-https://github.com/kspalaiologos/modern-lrzip/issues
+https://github.com/kspalaiologos/modern-rzip/issues
 
 Known issues:
 Mac may not be able to work with STDIN/STDOUT on very large files.
