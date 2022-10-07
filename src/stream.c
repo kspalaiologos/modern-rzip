@@ -21,7 +21,15 @@
 /* multiplex N streams into a file - the streams are passed
    through different compressors */
 
-#include "config.h"
+#include "../include/config.h"
+#include "../include/util.h"
+#include "../include/mrzip_core.h"
+
+#include "../vendor/bzip3/include/libbz3.h"
+#include "../vendor/zstd/lib/zstd.h"
+#include "../vendor/lz4/lib/lz4.h"
+#include "../vendor/lz4/lib/lz4hc.h"
+#include "../vendor/fast-lzma2/fast-lzma2.h"
 
 #include <sys/time.h>
 #include <sys/types.h>
@@ -29,19 +37,11 @@
 #include <unistd.h>
 #include <sys/statvfs.h>
 #include <pthread.h>
-#include <libbz3.h>
-#include <zstd.h>
-#include <lz4.h>
-#include <fast-lzma2.h>
-#include <lz4hc.h>
 #include <errno.h>
 #include <arpa/inet.h>
-
-#include "util.h"
-#include "lrzip_core.h"
 #include <math.h>
 
-/* This is not needed since it is defined in lrzip_private.h
+/* This is not needed since it is defined in mrzip_private.h
  * #define STREAM_BUFSIZE (1024 * 1024 * 10)
  */
 
@@ -316,7 +316,7 @@ static int ppmdsh_compress_buf(rzip_control *control, struct compress_thread *ct
 	}
 
 	// TODO: mapping between mem and compression lvl.
-	int res = ppmdsh_varjr1_compress(cthread->s_buf, cthread->s_len, c_buf, &dlen);
+	int res = ppmdsh_varjr1_compress(cthread->s_buf, cthread->s_len, c_buf, &dlen, control->compression_level);
 
 	if (unlikely(res != 0)) {
 		dealloc(c_buf);
@@ -1119,6 +1119,8 @@ retest_malloc:
 			stream_bufsize = round_up_page(control, (0x100000<<control->zpaq_bs)-0x1000);
 		else if (BZIP3_COMPRESS && (limit/control->threads > 0x100000<<control->bzip3_bs))
 			stream_bufsize = round_up_page(control, (0x100000<<control->bzip3_bs)-0x1000);
+		else if (PPM_COMPRESS && (limit/control->threads > 0x100000<<control->bzip3_bs))
+			stream_bufsize = round_up_page(control, (0x100000<<control->bzip3_bs)-0x1000);
 		else if (LZMA_COMPRESS && limit/control->threads > STREAM_BUFSIZE)
 			// for smaller dictionary sizes, need MAX test to bring in larger buffer from limit
 			// limit = usable ram / 2
@@ -1199,7 +1201,7 @@ void *open_stream_in(rzip_control *control, int f, int n, char chunk_bytes)
 	sinfo->s[0].total_threads = 1;
 	sinfo->s[1].total_threads = total_threads - 1;
 
-	/* remove checks for lrzip < 0.6 */
+	/* remove checks for mrzip < 0.6 */
 	if (control->major_version == 0) {
 		/* Read in flag that tells us if there are more chunks after
 		 * this. Ignored if we know the final file size */
@@ -1244,7 +1246,7 @@ again:
 		if (unlikely(read_u8(control, f, &c)))
 			goto failed;
 
-		/* remove checks for lrzip < 0.6 */
+		/* remove checks for mrzip < 0.6 */
 		if (control->major_version == 0) {
 			int read_len;
 
@@ -1690,7 +1692,7 @@ fill_another:
 	if (unlikely(read_u8(control, sinfo->fd, &c_type)))
 		return -1;
 
-	/* remove checks for lrzip < 0.6 */
+	/* remove checks for mrzip < 0.6 */
 	if (control->major_version == 0) {
 		int read_len;
 

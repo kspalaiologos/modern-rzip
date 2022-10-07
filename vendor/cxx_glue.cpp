@@ -132,13 +132,14 @@ int g_getc( FILE* f, FILE* g ) { return fgetc(f); }
 void g_putc( int c, FILE* f, FILE* g ) { fputc(c, g); }
 
 extern "C" {
-    int ppmdsh_varjr1_compress(char * input, int input_len, char * output, int * output_size) {
+    int ppmdsh_varjr1_compress(char * input, int input_len, char * output, int * output_size, unsigned level) {
         ALIGN(4096) pmd_codec C;
-        uint pmd_args[] = { 12 /* Order */, 256 /* Memory */, 1 /* Restore */, input_len };
+        uint pmd_args[] = { 12 /* Order */, static_cast<uint>(1 << level) /* Memory */, 1 /* Restore */, static_cast<uint>(input_len) };
         if(C.Init(0, pmd_args))
             return -1;
 		C.f = fmemopen(input, input_len, "rb");
 		C.g = fmemopen(output, *output_size, "wb");
+		fputc(level, C.g);
 		C.coro_call(&C);
         C.Quit();
 		fflush(C.g);
@@ -150,10 +151,10 @@ extern "C" {
 
     int ppmdsh_varjr1_decompress(char * input, int input_len, char * output, int * output_size) {
         ALIGN(4096) pmd_codec C;
-        uint pmd_args[] = { 12 /* Order */, 256 /* Memory */, 1 /* Restore */, -1U };
+        uint pmd_args[] = { 12 /* Order */, static_cast<uint>((*input) << 1) /* Memory */, 1 /* Restore */, -1U };
         if(C.Init(1, pmd_args))
             return -1;
-        C.f = fmemopen(input, input_len, "rb");
+        C.f = fmemopen(input + 1, input_len - 1, "rb");
 		C.g = fmemopen(output, *output_size, "wb");
         C.coro_call(&C);
         C.Quit();

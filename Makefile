@@ -15,33 +15,38 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 CC=clang
-FLAGS=-s -O3 -march=native -mtune=native
-CFLAGS=$(FLAGS)
-CXXFLAGS=$(FLAGS)
+CXX=clang++
+CCONFIG=-Ivendor/zpaq -Ivendor/lz4/lib -Ivendor/zstd/lib -Ivendor/fast-lzma2 \
+        -Ivendor/bzip3/include -Ivendor/ppmd_sh -Ivendor/ppmd_sh/libpmd \
+		-Iinclude -DZSTD_DISABLE_ASM
+FLAGS=-g3 -O3 -march=native -mtune=native $(CCONFIG)
+PROGRAM=mrzip
 
-ZPAQ_LIB=-Ivendor/zpaq/ vendor/zpaq/libzpaq.o
-LZ4_LIB=-Ivendor/lz4/lib vendor/lz4/lib/liblz4.a
-ZSTD_LIB=-Ivendor/zstd/lib vendor/zstd/lib/libzstd.a
-FLZMA2_LIB=-Ivendor/fast-lzma2/ vendor/fast-lzma2/libfast-lzma2.a
-BZIP3_LIB=-Ivendor/bzip3/include vendor/bzip3/src/libbz3.c
-PPMDSH_VARJR1_LIB=vendor/cxx_glue.o -Ivendor/ppmd_sh/ -Ivendor/ppmd_sh/libpmd
-LIBS=$(ZPAQ_LIB) $(LZ4_LIB) $(FLZMA2_LIB) $(ZSTD_LIB) $(BZIP3_LIB) $(PPMDSH_VARJR1_LIB)
-SOURCES=$(wildcard src/*.c)
+MRZIP_SOURCES=$(wildcard src/*.c)
+MRZIP_OBJECTS=$(MRZIP_SOURCES:.c=.o)
 
-mrzip: $(SOURCES)
-	$(CC) $(CFLAGS) -Iinclude -o $@ $^ $(LIBS) -lstdc++ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
+ZSTD_SOURCES=$(wildcard vendor/zstd/lib/common/*.c) \
+             $(wildcard vendor/zstd/lib/compress/*.c) \
+			 $(wildcard vendor/zstd/lib/decompress/*.c)
+ZSTD_OBJECTS=$(ZSTD_SOURCES:.c=.o)
+
+FLZMA2_SOURCES=$(wildcard vendor/fast-lzma2/*.c)
+FLZMA2_OBJECTS=$(FLZMA2_SOURCES:.c=.o)
+
+MRZIP_LIBS=vendor/cxx_glue.o vendor/zpaq/libzpaq.o \
+           vendor/lz4/lib/lz4.o vendor/lz4/lib/lz4hc.o \
+		   vendor/bzip3/src/libbz3.o \
+		   $(ZSTD_OBJECTS) $(FLZMA2_OBJECTS)
+
+$(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
+	$(CXX) $(FLAGS) -o $@ $^ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
+
+%.o: %.c
+	$(CC) $(FLAGS) -c -o $@ $<
+
+%.o: %.cpp
+	$(CXX) $(FLAGS) -c -o $@ $<
 
 .PHONY: clean
 clean:
-	rm -f mrzip
-
-vendor/cxx_glue.o: vendor/cxx_glue.cpp
-	$(CXX) $(CXXFLAGS) -Ivendor/ppmd_sh/ -Ivendor/ppmd_sh/libpmd -c -o $@ $^
-
-.PHONY: deps
-deps: vendor/cxx_glue.o vendor/zpaq vendor/lz4 vendor/zstd vendor/fast-lzma2 vendor/bzip3
-	$(MAKE) -C vendor/zpaq
-	$(MAKE) -C vendor/lz4
-	$(MAKE) -C vendor/zstd
-	$(MAKE) -C vendor/fast-lzma2
-	cd vendor/bzip3 && ./bootstrap.sh && ./configure && $(MAKE)
+	rm -f $(PROGRAM) $(MRZIP_OBJECTS) $(MRZIP_LIBS)
