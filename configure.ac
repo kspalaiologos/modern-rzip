@@ -35,7 +35,7 @@ AC_CHECK_SIZEOF(long)
 AS_IF([test $ac_cv_sizeof_long = 4], AC_MSG_ERROR([32-bit machines are not supported.]))
 
 AC_CHECK_LIB(pthread, pthread_create, , AC_MSG_ERROR([libpthread missing.]))
-AC_CHECK_LIB(gcrypt, gcry_md_open, , AC_MSG_ERROR([libgcrypt missing.]))
+AC_CHECK_LIB(gcrypt, gcry_md_open, , AC_MSG_ERROR([libgcrypt-dev missing.]))
 AC_CHECK_LIB(m, sqrt, , AC_MSG_ERROR([libm missing.]))
 AC_CHECK_LIB(gpg-error, gpg_err_code_to_errno, , AC_MSG_ERROR([libgpg-error-dev missing.]))
 
