@@ -125,7 +125,7 @@ i64 nloops(i64 seconds, uchar * b1, uchar * b2) {
 }
 
 bool write_magic(rzip_control * control) {
-    unsigned char magic[MAGIC_LEN] = { 'L', 'R', 'Z', 'I', MRZIP_MAJOR_VERSION, MRZIP_MINOR_VERSION };
+    unsigned char magic[MAGIC_LEN] = { 'M', 'R', 'Z', 'I', MRZIP_MAJOR_VERSION, MRZIP_MINOR_VERSION };
 
     /* In encrypted files, the size is left unknown
      * and instead the salt is stored here to preserve space. */
@@ -361,7 +361,7 @@ static bool read_magic(rzip_control * control, int fd_in, i64 * expected_size) {
     /* Initially read only file type and version */
     if (unlikely(read(fd_in, magic, MAGIC_HEADER) != MAGIC_HEADER)) fatal("Failed to read initial magic header\n");
 
-    if (unlikely(strncmp(magic, "LRZI", 4))) fatal("Not an mrzip file\n");
+    if (unlikely(strncmp(magic, "MRZI", 4))) fatal("Not an mrzip file\n");
 
     if (magic[4] == 0) {
         if (magic[5] < 8) /* old magic */
@@ -553,7 +553,7 @@ static bool read_tmpinmagic(rzip_control * control, int fd_in) {
         magic[i] = (char)tmpchar;
     }
 
-    if (unlikely(strncmp(magic, "LRZI", 4))) fatal("Not an mrzip stream\n");
+    if (unlikely(strncmp(magic, "MRZI", 4))) fatal("Not an mrzip stream\n");
 
     if (magic[4] == 0) {
         if (magic[5] < 8) /* old magic */
