@@ -144,6 +144,16 @@ extern struct encryption {
 
 #if defined(__MINGW32__) || defined(__CYGWIN__) || defined(__ANDROID__) || defined(__APPLE__) || defined(__OpenBSD__)
     #define ffsll __builtin_ffsll
+#else
+    int ffsll(long long mask) {
+        int bit;
+
+        if (mask == 0)
+            return (0);
+        for (bit = 1; !(mask & 1); bit++)
+            mask = (unsigned long long)mask >> 1;
+        return (bit);
+    }
 #endif
 
 typedef int64_t i64;
