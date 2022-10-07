@@ -49,20 +49,6 @@ struct bufRead : public libzpaq::Reader {
           msgout(msgout_) {}
 
     int get() {
-        if (progress && !(*s_len % 128)) {
-            int pct = (total_len > 0) ? (total_len - *s_len) * 100 / total_len : 100;
-
-            if (pct / 10 != *last_pct / 10) {
-                int i;
-
-                fprintf(msgout, "\r\t\t\t\tZPAQ\t");
-                for (i = 0; i < thread; i++) fprintf(msgout, "\t");
-                fprintf(msgout, "%d:%i%%  \r", thread + 1, pct);
-                fflush(msgout);
-                *last_pct = pct;
-            }
-        }
-
         if (likely(*s_len > 0)) {
             (*s_len)--;
             return ((int)(uchar)*s_buf++);
