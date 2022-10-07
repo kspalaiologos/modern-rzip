@@ -655,6 +655,7 @@ LIBOBJS
 ac_ct_CXX
 CXXFLAGS
 CXX
+ASOBJ
 OBJEXT
 EXEEXT
 ac_ct_CC
@@ -2722,6 +2723,8 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+
+
 if test -n "$ac_tool_prefix"; then
   # Extract the first word of "${ac_tool_prefix}strip", so it can be a program name with args.
 set dummy ${ac_tool_prefix}strip; ac_word=$2
@@ -3583,9 +3586,10 @@ fi
 printf "%s\n" "$ax_cv_check_cflags___msse2" >&6; }
 if test "x$ax_cv_check_cflags___msse2" = xyes
 then :
-  CFLAGS="$CFLAGS -msse2"
+  CFLAGS="$CFLAGS -msse2"; ASOBJ="vendor/zstd/lib/decompress/huf_decompress_amd64.o"
+
 else $as_nop
-  CFLAGS="$CFLAGS -DNOJIT -DZSTD_DISABLE_ASM"
+  CFLAGS="$CFLAGS -DNOJIT -DZSTD_DISABLE_ASM";
 fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wno-pointer-sign" >&5

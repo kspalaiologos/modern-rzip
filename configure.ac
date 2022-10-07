@@ -19,6 +19,8 @@ AS_VAR_IF(CACHEVAR,yes,
 AS_VAR_POPDEF([CACHEVAR])dnl
 ])dnl AX_CHECK_COMPILE_FLAGS
 
+
+
 AC_DEFUN([AC_PROG_STRIP], [AC_CHECK_TOOL(STRIP, strip, :)])
 AC_PROG_STRIP
 
@@ -26,7 +28,9 @@ AC_LANG([C])
 AC_PROG_CC([clang gcc icc])
 
 AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C compiler does not support -static.])])
-AX_CHECK_COMPILE_FLAG([-msse2], [CFLAGS="$CFLAGS -msse2"], [CFLAGS="$CFLAGS -DNOJIT -DZSTD_DISABLE_ASM"])
+AX_CHECK_COMPILE_FLAG([-msse2],
+  [CFLAGS="$CFLAGS -msse2"; AC_SUBST([ASOBJ], ["vendor/zstd/lib/decompress/huf_decompress_amd64.o"])],
+  [CFLAGS="$CFLAGS -DNOJIT -DZSTD_DISABLE_ASM"; AC_SUBST([ASOBJ], [])])
 AX_CHECK_COMPILE_FLAG([-Wno-pointer-sign], [CFLAGS="$CFLAGS -Wno-pointer-sign"])
 AX_CHECK_COMPILE_FLAG([-Wno-pragma-pack], [CFLAGS="$CFLAGS -Wno-pragma-pack"])
 
