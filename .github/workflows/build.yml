@@ -1,0 +1,56 @@
+name: Build
+
+on: [ push, pull_request ]
+
+jobs:
+
+  dist:
+    name: Package
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Configure
+      run: ./configure
+    - name: Make
+      run: make -j$(nproc)
+
+  build:
+    name: Build Matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ ubuntu-latest, macos-latest ]
+        compiler: [ clang, gcc ]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Configure
+      run: ./configure CC=${{ matrix.compiler }}
+    - name: Make
+      run: make -j$(nproc)
+
+  build-archs:
+    name: Build Matrix for non-x86 architectures
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ clang, gcc ]
+        arch: [ aarch64, s390x, ppc64le ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: uraimo/run-on-arch-action@v2
+      name: Run in the container
+      with:
+        arch: ${{ matrix.arch }}
+        distro: stretch
+        shell: /bin/sh
+        dockerRunArgs: |
+          --volume "${PWD}:/modern-rzip"
+        install: |
+          apt update -q -y
+          apt install -q -y clang gcc make
+        run: |
+          cd /modern-rzip
+          ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }}
+          make
