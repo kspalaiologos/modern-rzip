@@ -675,7 +675,7 @@ static inline void init_hash_indexes(struct rzip_state * st) {
 #if !defined(__linux)
     #define mremap fake_mremap
 
-static inline void * fake_mremap(void * old_address, size_t old_size, size_t new_size, int flags __UNUSED__) {
+static inline void * fake_mremap(void * old_address, size_t old_size, size_t new_size, int flags) {
     if (new_size > old_size) {
         fprintf(stderr, "fake_mremap: This should only be used to shrink things. I'm not bothering with this.\n");
         exit(1);
