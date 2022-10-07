@@ -10,13 +10,12 @@ A refurbished fork of lrzip.
 ```
 
 ### How it Works
-**modern-rzip** applies a two-step process (optionally three-step process if filters are used)
-and reads file or STDIN input, passes it to the **rzip** pre-processor (and optional filter).
-The rzip pre-processor applies long-range redundancy reduction and then passes the streams of
-data to a back-end compressor. **modern-rzip** will, by default, test each stream with a *compressibility*
-test using **lz4** prior to compression. The selected back-end compressor works on smaller data
-sets and ignore streams of data that may not compress well. The end result is significantly
-faster compression than standalone compressors and much faster decompression.
+**modern-rzip** applies a two-step process and reads file or STDIN input, passes it to the **rzip**
+pre-processor. The rzip pre-processor applies long-range redundancy reduction and then passes the
+streams of data to a back-end compressor. **modern-rzip** will, by default, test each stream with
+a *compressibility* test using **lz4** prior to compression. The selected back-end compressor works
+on smaller data sets and ignore streams of data that may not compress well. The end result is
+significantly faster compression than standalone compressors and much faster decompression.
 
 **modern-rzip**'s compressors are:
 * Fast LZMA2 (default)

@@ -77,76 +77,84 @@ static rzip_control base_control, local_control, *control;
 
 static void usage(void)
 {
-	print_output("%s version %s\n", PACKAGE, PACKAGE_VERSION);
-	print_output("Copyright (C) Con Kolivas 2006-2021\n");
-	print_output("Copyright (C) Peter Hyman 2007-2022\n");
-	print_output("Copyright (C) Kamila Szewczyk 2022\n");
-	print_output("Based on rzip ");
-	print_output("Copyright (C) Andrew Tridgell 1998-2003\n\n");
-	print_output("Usage: mrzip [options] <file...>\n");
-	print_output("Compression Options:\n--------------------\n");
-	print_output("	--lzma			lzma compression (default)\n");
-	print_output("	-s, --ppmdsh		ppmd_sh varJr1 compression\n");
-	print_output("	-Z, --zstd		zstd compression using zlib\n");
-	print_output("	-l, --lz4		lz4 compression (ultra fast)\n");
-	print_output("	-n, --no-compress	no backend compression - prepare for other compressor\n");
-	print_output("	-z, --zpaq		zpaq compression (best, extreme compression, extremely slow)\n");
-	print_output("	-B, --bzip3		bzip3 compression\n");
-	print_output("	-L#, --level #		set lzma/zstd compression level (1-9, default 7)\n");
-	print_output("	--fast			alias for -L1\n");
-	print_output("	--best			alias for -L9\n");
-	print_output("	--zpaqbs		Set ZPAQ Block Size overriding defaults. 1-11, 2^zpaqbs * 1MB\n");
-	print_output("	--bzip3bs		Set bzip3 Block Size. 1-8, 2^bzip3bs * 1MB.\n");
-	print_output("    Additional Compression Options:\n");
-	print_output("	-C, --comment [comment]	Add a comment up to 64 chars\n");
-	print_output("	-e, --encrypt [=password] password protected sha512/aes128 encryption on compression\n");
-	print_output("	-E, --emethod [method]	Encryption Method: 1 = AES128, 2=AES256\n");
-	print_output("	-D, --delete		delete existing files\n");
-	print_output("	-f, --force		force overwrite of any existing files\n");
-	print_output("	-K, --keep-broken	keep broken or damaged output files\n");
-	print_output("	-o, --outfile filename	specify the output file name and/or path\n");
-	print_output("	-O, --outdir directory	specify the output directory when -o is not used\n");
-	print_output("	-S, --suffix suffix	specify compressed suffix (default '.lrz')\n");
-	print_output("    Low level Compression Options:\n");
-	print_output("	-N, --nice-level value	Set nice value to value (default 19)\n");
-	print_output("	-m, --maxram size	Set maximum available ram in hundreds of MB\n\t\t\t\tOverrides detected amount of available ram. \
-Useful for testing\n");
-	print_output("	-R, --rzip-level level	Set independent RZIP Compression Level (1-9) for pre-processing (default=compression level)\n");
-	print_output("	-T, --threshold [limit]	Disable LZ4 compressibility testing OR set limit to determine compressibiity (1-99)\n\t\t\t\t\
-Note: Since limit is optional, the short option must not have a space. e.g. -T75, not -T 75\n");
-	print_output("	-U, --unlimited		Use unlimited window size beyond ramsize (potentially much slower)\n");
-	print_output("	-w, --window size	maximum compression window in hundreds of MB\n\t\t\t\t\
-default chosen by heuristic dependent on ram and chosen compression\n");
-	print_output("Decompression Options:\n----------------------\n");
-	print_output("	-d, --decompress	decompress\n");
-	print_output("	-e, -f -o -O		Same as Compression Options\n");
-	print_output("	-t, --test		test compressed file integrity\n");
-	print_output("	-c, --check		check integrity of file written on decompression\n");
-	print_output("General Options:\n----------------\n");
-	print_output("	-h, -?, --help		show help\n");
-	print_output("	-H, --hash [hash code]	Set hash to compute (default md5) 1-13 (see manpage)\n");
-	print_output("	-i, --info		show compressed file information\n");
-	print_output("	-P, --progress		show compression progress\n");
-	print_output("	-q, --quiet		don't show compression progress\n");
-	print_output("	-p, --threads value	Set processor count to override number of threads\n");
-	print_output("	-v[v], --verbose	Increase verbosity\n");
-	print_output("	-V, --version		display software version and license\n");
-	print_output("\nMRZIP=NOCONFIG environment variable setting can be used to bypass mrzip.conf.\n\
-TMP environment variable will be used for storage of temporary files when needed.\n\
-TMPDIR may also be stored in mrzip.conf file.\n\
-\nIf no filenames or \"-\" is specified, stdin/out will be used.\n");
+	print_output(
+		PACKAGE " version " PACKAGE_VERSION "\n"
+		"Copyright (C) Con Kolivas 2006-2021\n"
+		"Copyright (C) Peter Hyman 2007-2022\n"
+		"Copyright (C) Kamila Szewczyk 2022\n"
+		"Based on rzip "
+		"Copyright (C) Andrew Tridgell 1998-2003\n\n"
+		"Usage: mrzip [options] <file...>\n"
+		"Compression Options:\n"
+		"--------------------\n"
+		"	--lzma			lzma compression (default)\n"
+		"	-s, --ppmdsh		ppmd_sh varJr1 compression\n"
+		"	-Z, --zstd		zstd compression using zlib\n"
+		"	-l, --lz4		lz4 compression (ultra fast)\n"
+		"	-n, --no-compress	no backend compression - prepare for other compressor\n"
+		"	-z, --zpaq		zpaq compression (best, extreme compression, extremely slow)\n"
+		"	-B, --bzip3		bzip3 compression\n"
+		"	-L#, --level #		set lzma/zstd compression level (1-9, default 7)\n"
+		"	--fast			alias for -L1\n"
+		"	--best			alias for -L9\n"
+		"	--zpaqbs		Set ZPAQ Block Size overriding defaults. 1-11, 2^zpaqbs * 1MB\n"
+		"	--bzip3bs		Set bzip3 Block Size. 1-8, 2^bzip3bs * 1MB.\n"
+		"    Additional Compression Options:\n"
+		"	-C, --comment [comment]	Add a comment up to 64 chars\n"
+		"	-e, --encrypt [=password] password protected sha512/aes128 encryption on compression\n"
+		"	-E, --emethod [method]	Encryption Method: 1 = AES128, 2=AES256\n"
+		"	-D, --delete		delete existing files\n"
+		"	-f, --force		force overwrite of any existing files\n"
+		"	-K, --keep-broken	keep broken or damaged output files\n"
+		"	-o, --outfile filename	specify the output file name and/or path\n"
+		"	-O, --outdir directory	specify the output directory when -o is not used\n"
+		"	-S, --suffix suffix	specify compressed suffix (default '.lrz')\n"
+		"    Low level Compression Options:\n"
+		"	-N, --nice-level value	Set nice value to value (default 19)\n"
+		"	-m, --maxram size	Set maximum available ram in hundreds of MB\n"
+		"\t\t\t\tOverrides detected amount of available ram. Useful for testing\n"
+		"	-R, --rzip-level level	Set independent RZIP Compression Level (1-9) for pre-processing (default=compression level)\n"
+		"	-T, --threshold [limit]	Disable LZ4 compressibility testing OR set limit to determine compressibiity (1-99)\n"
+		"\t\t\t\tNote: Since limit is optional, the short option must not have a space. e.g. -T75, not -T 75\n"
+		"	-U, --unlimited		Use unlimited window size beyond ramsize (potentially much slower)\n"
+		"	-w, --window size	maximum compression window in hundreds of MB\n"
+		"\t\t\t\tdefault chosen by heuristic dependent on ram and chosen compression\n"
+		"Decompression Options:\n"
+		"----------------------\n"
+		"	-d, --decompress	decompress\n"
+		"	-e, -f -o -O		Same as Compression Options\n"
+		"	-t, --test		test compressed file integrity\n"
+		"	-c, --check		check integrity of file written on decompression\n"
+		"General Options:\n"
+		"----------------\n"
+		"	-h, -?, --help		show help\n"
+		"	-H, --hash [hash code]	Set hash to compute (default md5) 1-13 (see manpage)\n"
+		"	-i, --info		show compressed file information\n"
+		"	-P, --progress		show compression progress\n"
+		"	-q, --quiet		don't show compression progress\n"
+		"	-p, --threads value	Set processor count to override number of threads\n"
+		"	-v[v], --verbose	Increase verbosity\n"
+		"	-V, --version		display software version and license\n"
+		"\nMRZIP=NOCONFIG environment variable setting can be used to bypass mrzip.conf.\n"
+		"TMP environment variable will be used for storage of temporary files when needed.\n"
+		"TMPDIR may also be stored in mrzip.conf file.\n"
+		"\nIf no filenames or \"-\" is specified, stdin/out will be used.\n"
+	);
 
 }
 
 static void license(void)
 {
-	print_output("%s version %s\n\
-Copyright (C) Con Kolivas 2006-2016\n\
-Copyright (C) Peter Hyman 2007-2022\n\
-Based on rzip Copyright (C) Andrew Tridgell 1998-2003\n\n\
-This is free software.  You may redistribute copies of it under the terms of\n\
-the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n\
-There is NO WARRANTY, to the extent permitted by law.\n", PACKAGE, PACKAGE_VERSION);
+	print_output(
+		PACKAGE " version " PACKAGE_VERSION "\n"
+		"Copyright (C) Con Kolivas 2006-2016\n"
+		"Copyright (C) Peter Hyman 2007-2022\n"
+		"Copyright (C) Kamila Szewczyk 2022\n"
+		"Based on rzip Copyright (C) Andrew Tridgell 1998-2003\n\n"
+		"This is free software.  You may redistribute copies of it under the terms of\n"
+		"the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
+		"There is NO WARRANTY, to the extent permitted by law.\n"
+	);
 }
 
 static void sighandler(int sig)
