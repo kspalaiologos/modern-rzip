@@ -63,8 +63,8 @@ jobs:
         dockerRunArgs: |
           --volume "${PWD}:/modern-rzip"
         install: |
-          sudo apt update -q -y
-          sudo apt install -q -y clang gcc make libgcrypt-dev libgpg-error-dev
+          apt update -q -y
+          apt install -q -y clang gcc make libgcrypt-dev libgpg-error-dev
         run: |
           cd /modern-rzip
           ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }}
