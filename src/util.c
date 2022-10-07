@@ -68,7 +68,7 @@ void unlink_files(rzip_control *control)
 		unlink(control->util_infile);
 }
 
-void fatal_exit(rzip_control *control)
+noreturn void fatal_exit(rzip_control *control)
 {
 	struct termios termios_p;
 

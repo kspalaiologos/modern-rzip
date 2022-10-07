@@ -22,6 +22,7 @@
 
 #include "./mrzip_private.h"
 #include <errno.h>
+#include <stdnoreturn.h>
 #include <semaphore.h>
 #include <stdarg.h>
 #include <unistd.h>
@@ -31,7 +32,7 @@ void register_infile(rzip_control *control, const char *name, char delete);
 void register_outfile(rzip_control *control, const char *name, char delete);
 void unlink_files(rzip_control *control);
 void register_outputfile(rzip_control *control, FILE *f);
-void fatal_exit(rzip_control *control);
+noreturn void fatal_exit(rzip_control *control);
 void setup_overhead(rzip_control *control);
 void setup_ram(rzip_control *control);
 void round_to_page(i64 *size);
@@ -44,7 +45,7 @@ bool lrz_crypt(const rzip_control *control, uchar *buf, i64 len, const uchar *sa
  */
 bool decrypt_header(rzip_control *control, uchar *head, uchar *c_type, i64 *c_len, i64 *u_len, i64 *last_head, int decompress_type);
 
-static inline void fatal(const rzip_control *control, unsigned int line, const char *file, const char *func, const char *format, ...)
+static inline noreturn void fatal(const rzip_control *control, unsigned int line, const char *file, const char *func, const char *format, ...)
 {
 	va_list ap;
 	/* mrzip library callback code removed */
