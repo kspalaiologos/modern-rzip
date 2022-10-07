@@ -18,7 +18,8 @@ CC=clang
 CXX=clang++
 CCONFIG=-Ivendor/zpaq -Ivendor/lz4/lib -Ivendor/zstd/lib -Ivendor/fast-lzma2 \
         -Ivendor/bzip3/include -Ivendor/ppmd_sh -Ivendor/ppmd_sh/libpmd \
-		-Iinclude -DZSTD_DISABLE_ASM
+		-Iinclude -DZSTD_DISABLE_ASM -Wno-pointer-sign -Wno-format-invalid-specifier \
+		-Wno-pragma-pack
 FLAGS=-flto -O3 -march=native -mtune=native $(CCONFIG)
 PROGRAM=mrzip
 
@@ -39,15 +40,19 @@ MRZIP_LIBS=vendor/cxx_glue.o vendor/zpaq/libzpaq.o \
 		   $(ZSTD_OBJECTS) $(FLZMA2_OBJECTS)
 
 $(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
-	$(CXX) $(FLAGS) -o $@ $^ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
-	strip --strip-all $(PROGRAM)
+	@echo "   CCLD" $@
+	@$(CXX) $(FLAGS) -o $@ $^ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
+	@echo "   STRIP" $@
+	@strip --strip-all $(PROGRAM)
 
 %.o: %.c
-	$(CC) $(FLAGS) -c -o $@ $<
+	@echo "   CC" $<
+	@$(CC) $(FLAGS) -c -o $@ $<
 
 %.o: %.cpp
-	$(CXX) $(FLAGS) -c -o $@ $<
+	@echo "   CXX" $<
+	@$(CXX) $(FLAGS) -c -o $@ $<
 
 .PHONY: clean
 clean:
-	rm -f $(PROGRAM) $(MRZIP_OBJECTS) $(MRZIP_LIBS)
+	@rm -f $(PROGRAM) $(MRZIP_OBJECTS) $(MRZIP_LIBS)
