@@ -21,7 +21,7 @@
 #ifndef MRZIP_STREAM_H
 #define MRZIP_STREAM_H
 
-#include "lrzip_private.h"
+#include "./mrzip_private.h"
 #include <pthread.h>
 
 bool create_pthread(rzip_control *control, pthread_t *thread, pthread_attr_t * attr,

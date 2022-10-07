@@ -20,7 +20,7 @@
 
 #ifndef RZIP_H
 #define RZIP_H
-#include "lrzip_private.h"
+#include "./mrzip_private.h"
 
 void rzip_fd(rzip_control *control, int fd_in, int fd_out);
 

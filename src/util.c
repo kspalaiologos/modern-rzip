@@ -28,8 +28,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "lrzip_private.h"
-#include "util.h"
+#include "../include/mrzip_private.h"
+#include "../include/util.h"
 
 #ifdef _SC_PAGE_SIZE
 # define PAGE_SIZE (sysconf(_SC_PAGE_SIZE))
@@ -143,6 +143,8 @@ void setup_overhead(rzip_control *control)
 		}
 
 		control->overhead = (i64) (1 << control->bzip3_bs) * ONE_MB * 6;
+	} else if(PPM_COMPRESS) {
+		control->overhead = (i64) (1 << control->compression_level) * ONE_MB;
 	}
 
 	/* no need for zpaq computation here. do in open_stream_out() */
@@ -177,29 +179,29 @@ size_t round_up_page(rzip_control *control, size_t len)
 
 bool read_config(rzip_control *control)
 {
-	/* check for lrzip.conf in ., $HOME/.lrzip and /etc/lrzip */
+	/* check for mrzip.conf in ., $HOME/.mrzip and /etc/mrzip */
 	char *HOME, homeconf[255];
 	char *parametervalue;
 	char *parameter;
 	char line[255];
 	FILE *fp;
 
-	fp = fopen("lrzip.conf", "r");
+	fp = fopen("mrzip.conf", "r");
 	if (fp)
-		fprintf(control->msgout, "Using configuration file ./lrzip.conf\n");
+		fprintf(control->msgout, "Using configuration file ./mrzip.conf\n");
 	if (fp == NULL) {
 		HOME=getenv("HOME");
 		if (HOME) {
-			snprintf(homeconf, sizeof(homeconf), "%s/.lrzip/lrzip.conf", HOME);
+			snprintf(homeconf, sizeof(homeconf), "%s/.mrzip/mrzip.conf", HOME);
 			fp = fopen(homeconf, "r");
 			if (fp)
 				fprintf(control->msgout, "Using configuration file %s\n", homeconf);
 		}
 	}
 	if (fp == NULL) {
-		fp = fopen("/etc/lrzip/lrzip.conf", "r");
+		fp = fopen("/etc/mrzip/mrzip.conf", "r");
 		if (fp)
-			fprintf(control->msgout, "Using configuration file /etc/lrzip/lrzip.conf\n");
+			fprintf(control->msgout, "Using configuration file /etc/mrzip/mrzip.conf\n");
 	}
 	if (fp == NULL)
 		return false;
@@ -283,7 +285,7 @@ bool read_config(rzip_control *control)
 				(control->hash_code > 0 && control->hash_code <= MAXHASH))
 				control->flags |= FLAG_HASHED;
 			else if (control->hash_code > MAXHASH) {	// out of bounds
-				print_err("lrzip.conf hash value (%d) out of bounds. Please check\n", control->hash_code);
+				print_err("mrzip.conf hash value (%d) out of bounds. Please check\n", control->hash_code);
 				control->hash_code = 0;
 				control->flags &= ~FLAG_HASHED;
 			}
@@ -304,7 +306,7 @@ bool read_config(rzip_control *control)
 			else if (isparameter(parametervalue,"max"))
 				control->flags |= FLAG_VERBOSITY_MAX;
 			else /* oops, unrecognized value */
-				print_err("lrzip.conf: Unrecognized verbosity value %s. Ignored.\n", parametervalue);
+				print_err("mrzip.conf: Unrecognized verbosity value %s. Ignored.\n", parametervalue);
 		}
 		else if (isparameter(parameter, "showprogress")) {
 			/* Yes by default */
@@ -326,7 +328,7 @@ bool read_config(rzip_control *control)
 				control->flags &= ~FLAG_KEEP_FILES;
 		}
 		else if (iscaseparameter(parameter, "REPLACEFILE")) {
-			/* replace lrzip file must be case sensitive */
+			/* replace mrzip file must be case sensitive */
 			if (iscaseparameter(parametervalue, "YES"))
 				control->flags |= FLAG_FORCE_REPLACE;
 		}
@@ -344,7 +346,7 @@ bool read_config(rzip_control *control)
 				(control->enc_code > 0 && control->enc_code <= MAXENC))
 				control->flags |= FLAG_ENCRYPT;
 			else if (control->enc_code > MAXENC) {		// out of bounds
-				print_err("lrzip.conf encryption value (%d) out of bounds. Please check.\n", control->enc_code);
+				print_err("mrzip.conf encryption value (%d) out of bounds. Please check.\n", control->enc_code);
 				control->enc_code = 0;
 				control->flags &= ~FLAG_ENCRYPT;
 			}
@@ -359,7 +361,7 @@ bool read_config(rzip_control *control)
 		}
 		else {
 			/* oops, we have an invalid parameter, display */
-			print_err("lrzip.conf: Unrecognized parameter value, %s = %s. Continuing.\n",\
+			print_err("mrzip.conf: Unrecognized parameter value, %s = %s. Continuing.\n",\
 			       parameter, parametervalue);
 		}
 	}
@@ -426,7 +428,7 @@ bool lrz_crypt(const rzip_control *control, uchar *buf, i64 len, const uchar *sa
 	size_t gcry_error;
 
 	/* now allocate as to size of encryption key as
-	 * defined in lrzip_private.h */
+	 * defined in mrzip_private.h */
 	key = calloc(*control->enc_keylen, 1);
 	iv  = calloc(*control->enc_ivlen, 1);
 
