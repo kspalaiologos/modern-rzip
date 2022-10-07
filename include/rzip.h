@@ -22,6 +22,6 @@
 #define RZIP_H
 #include "./mrzip_private.h"
 
-void rzip_fd(rzip_control *control, int fd_in, int fd_out);
+void rzip_fd(rzip_control * control, int fd_in, int fd_out);
 
 #endif

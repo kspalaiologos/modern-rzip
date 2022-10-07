@@ -23,7 +23,7 @@
 
 #include "./mrzip_private.h"
 
-void clear_rulist(rzip_control *control);
-i64 runzip_fd(rzip_control *control, int fd_in, int fd_out, int fd_hist, i64 expected_size);
+void clear_rulist(rzip_control * control);
+i64 runzip_fd(rzip_control * control, int fd_in, int fd_out, int fd_hist, i64 expected_size);
 
 #endif
