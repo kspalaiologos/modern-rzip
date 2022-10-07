@@ -1,10 +1,6 @@
-Original concept and programming by Con Kolivas
 
-Beginning with version 0.19, Peter Hyman submitted bug fixes,
-patches, and multi-threading support.
-
-Beginning with version 0.9, Kamila Szewczyk has restructured
-and modernised the project.
+Patches to lrzip and lrzip-next:
+Copyright (C) Kamila Szewczyk, 2022
 
 Thanks to:
 Andrew Tridgell for rzip
@@ -16,4 +12,4 @@ Dymitry Shkarin and Eugene Shelwien for PPMD_sh varJr1
 Kamila Szewczyk for bzip3
 Yann Collet for lz4 and zstandard
 Matt Mahoney for zpaq
-
+Con Kolivas and Peter Hyman for lrzip and lrzip-next
