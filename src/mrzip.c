@@ -886,7 +886,7 @@ bool get_fileinfo(rzip_control *control)
 {
 	i64 u_len, c_len, second_last, last_head, utotal = 0, ctotal = 0, ofs, stream_head[2];
 	i64 expected_size, infile_size, chunk_size = 0, chunk_total = 0;
-	int header_length, stream = 0, chunk = 0;
+	int header_length = 0, stream = 0, chunk = 0;
 	char *tmp, *infilecopy = NULL;
 	char chunk_byte = 0;
 	long double cratio, bpb;
