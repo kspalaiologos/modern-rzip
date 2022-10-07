@@ -37,6 +37,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <alloca.h>
+#include <unistd.h>
 
 #include "./config.h"
 
