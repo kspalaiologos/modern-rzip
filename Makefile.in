@@ -41,7 +41,7 @@ MRZIP_LIBS=vendor/cxx_glue.o vendor/zpaq/libzpaq.o \
 
 $(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
 	@echo "   CCLD" $@
-	@$(CXX) $(FLAGS) -o $@ $^ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
+	@$(CXX) $(CFLAGS) -o $@ $^ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
 	@echo "   STRIP" $@
 	@$(STRIP) --strip-all $(PROGRAM)
 
