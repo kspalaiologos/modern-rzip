@@ -48,7 +48,7 @@ jobs:
         ./configure CC=clang CXX=clang++
         cat Makefile
     - name: Make
-      run: make -j$(nproc)
+      run: make -j$(sysctl -n hw.logicalcpu)
   
   build-macos-gcc:
     name: MacOS GCC
@@ -63,7 +63,7 @@ jobs:
         ./configure CC=gcc CXX=g++
         cat Makefile
     - name: Make
-      run: make -j$(nproc)
+      run: make -j$(sysctl -n hw.logicalcpu)
 
   build-archs:
     name: Build Matrix for non-x86 architectures
