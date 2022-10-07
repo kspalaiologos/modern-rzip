@@ -87,7 +87,7 @@ void setup_overhead(rzip_control * control) {
      * compression back-ends that need a lot of ram
      * and set Dictionary size */
     if (LZMA_COMPRESS) {
-        control->overhead = (1 << control->compression_level) * 2 * ONE_MB;
+        control->overhead = (1 << control->compression_level) * ONE_MB;
     } else if (ZPAQ_COMPRESS) {
         control->zpaq_level = (control->compression_level < 4 ? 3 : (control->compression_level < 8 ? 4 : 5));
         if (control->zpaq_bs == 0) {
