@@ -24,6 +24,8 @@ AC_CHECK_LIB(gcrypt, gcry_md_open, , AC_MSG_ERROR([libgcrypt-dev missing.]))
 AC_CHECK_LIB(m, sqrt, , AC_MSG_ERROR([libm missing.]))
 AC_CHECK_LIB(gpg-error, gpg_err_code_to_errno, , AC_MSG_ERROR([libgpg-error-dev missing.]))
 
+AC_CHECK_FUNC([ffsll], [], [CFLAGS="$CFLAGS -DNO_FFSLL"])
+
 AC_LANG([C++])
 AC_PROG_CXX
 

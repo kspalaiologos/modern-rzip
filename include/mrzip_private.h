@@ -142,16 +142,17 @@ extern struct encryption {
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #define __maybe_unused __attribute__((unused))
 
-#if defined(__MINGW32__) || defined(__CYGWIN__) || defined(__ANDROID__) || defined(__APPLE__) || defined(__OpenBSD__)
+#if defined(__MINGW32__) || defined(__CYGWIN__) || defined(__ANDROID__) || defined(__APPLE__) || defined(__OpenBSD__) || __has_builtin(__builtin_ffsll)
     #define ffsll __builtin_ffsll
-#else
-    int ffsll(long long mask) {
+#elif defined(NO_FFSLL)
+    // TODO: Check for ffsll in <strings.h> before supplying own implementation?
+    static int ffsll(long long int mask) {
         int bit;
 
         if (mask == 0)
             return (0);
         for (bit = 1; !(mask & 1); bit++)
-            mask = (unsigned long long)mask >> 1;
+            mask = (unsigned long long int)mask >> 1;
         return (bit);
     }
 #endif
