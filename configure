@@ -705,6 +705,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_lto
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1330,6 +1331,12 @@ if test -n "$ac_init_help"; then
      short | recursive ) echo "Configuration of modern-rzip v0.9:";;
    esac
   cat <<\_ACEOF
+
+Optional Features:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-lto            Enable link-time optimization
 
 Some influential environment variables:
   CC          C compiler command
@@ -3543,44 +3550,6 @@ else $as_nop
   as_fn_error $? "C compiler does not support -static." "$LINENO" 5
 fi
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -flto" >&5
-printf %s "checking whether C compiler accepts -flto... " >&6; }
-if test ${ax_cv_check_cflags___flto+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-
-  ax_check_save_flags=$CFLAGS
-  CFLAGS=" -flto"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main (void)
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"
-then :
-  ax_cv_check_cflags___flto=yes
-else $as_nop
-  ax_cv_check_cflags___flto=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-  CFLAGS=$ax_check_save_flags
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___flto" >&5
-printf "%s\n" "$ax_cv_check_cflags___flto" >&6; }
-if test "x$ax_cv_check_cflags___flto" = xyes
-then :
-  CFLAGS="$CFLAGS -flto"
-else $as_nop
-  :
-fi
-
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -msse2" >&5
 printf %s "checking whether C compiler accepts -msse2... " >&6; }
 if test ${ax_cv_check_cflags___msse2+y}
@@ -3850,7 +3819,7 @@ then :
   LIBS="-lgcrypt $LIBS"
 
 else $as_nop
-  as_fn_error $? "libgcrypt missing." "$LINENO" 5
+  as_fn_error $? "libgcrypt-dev missing." "$LINENO" 5
 fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for sqrt in -lm" >&5
@@ -4365,44 +4334,6 @@ else $as_nop
   as_fn_error $? "C++ compiler does not support -static." "$LINENO" 5
 fi
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C++ compiler accepts -flto" >&5
-printf %s "checking whether C++ compiler accepts -flto... " >&6; }
-if test ${ax_cv_check_cxxflags___flto+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-
-  ax_check_save_flags=$CXXFLAGS
-  CXXFLAGS=" -flto"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main (void)
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"
-then :
-  ax_cv_check_cxxflags___flto=yes
-else $as_nop
-  ax_cv_check_cxxflags___flto=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-  CXXFLAGS=$ax_check_save_flags
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cxxflags___flto" >&5
-printf "%s\n" "$ax_cv_check_cxxflags___flto" >&6; }
-if test "x$ax_cv_check_cxxflags___flto" = xyes
-then :
-  CXXFLAGS="$CXXFLAGS -flto"
-else $as_nop
-  :
-fi
-
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C++ compiler accepts -msse2" >&5
 printf %s "checking whether C++ compiler accepts -msse2... " >&6; }
 if test ${ax_cv_check_cxxflags___msse2+y}
@@ -4515,6 +4446,13 @@ then :
   CXXFLAGS="$CXXFLAGS -Wno-pragma-pack"
 else $as_nop
   :
+fi
+
+
+# Check whether --enable-lto was given.
+if test ${enable_lto+y}
+then :
+  enableval=$enable_lto; CFLAGS="$CFLAGS -flto"; CXXFLAGS="$CXXFLAGS -flto"
 fi
 
 

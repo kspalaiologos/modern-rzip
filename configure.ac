@@ -26,7 +26,6 @@ AC_LANG([C])
 AC_PROG_CC([clang gcc icc])
 
 AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C compiler does not support -static.])])
-AX_CHECK_COMPILE_FLAG([-flto], [CFLAGS="$CFLAGS -flto"])
 AX_CHECK_COMPILE_FLAG([-msse2], [CFLAGS="$CFLAGS -msse2"], [CFLAGS="$CFLAGS -DNOJIT -DZSTD_DISABLE_ASM"])
 AX_CHECK_COMPILE_FLAG([-Wno-pointer-sign], [CFLAGS="$CFLAGS -Wno-pointer-sign"])
 AX_CHECK_COMPILE_FLAG([-Wno-pragma-pack], [CFLAGS="$CFLAGS -Wno-pragma-pack"])
@@ -43,10 +42,11 @@ AC_LANG([C++])
 AC_PROG_CXX([clang++ g++ icpc])
 
 AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C++ compiler does not support -static.])])
-AX_CHECK_COMPILE_FLAG([-flto], [CXXFLAGS="$CXXFLAGS -flto"])
 AX_CHECK_COMPILE_FLAG([-msse2], [CXXFLAGS="$CXXFLAGS -msse2"], [CXXFLAGS="$CXXFLAGS -DNOJIT -DZSTD_DISABLE_ASM"])
 AX_CHECK_COMPILE_FLAG([-Wno-pointer-sign], [CXXFLAGS="$CXXFLAGS -Wno-pointer-sign"])
 AX_CHECK_COMPILE_FLAG([-Wno-pragma-pack], [CXXFLAGS="$CXXFLAGS -Wno-pragma-pack"])
+
+AC_ARG_ENABLE([lto], [AS_HELP_STRING([--enable-lto], [Enable link-time optimization])], [CFLAGS="$CFLAGS -flto"; CXXFLAGS="$CXXFLAGS -flto"], [])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
