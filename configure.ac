@@ -8,7 +8,7 @@ AC_CONFIG_MACRO_DIR([build-aux])
 AC_PROG_STRIP
 
 AC_LANG([C])
-AC_PROG_CC([clang gcc icc])
+AC_PROG_CC
 
 AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C compiler does not support -static.])])
 AX_CHECK_COMPILE_FLAG([-msse2],
@@ -26,7 +26,7 @@ AC_CHECK_LIB(m, sqrt, , AC_MSG_ERROR([libm missing.]))
 AC_CHECK_LIB(gpg-error, gpg_err_code_to_errno, , AC_MSG_ERROR([libgpg-error-dev missing.]))
 
 AC_LANG([C++])
-AC_PROG_CXX([clang++ g++ icpc])
+AC_PROG_CXX
 
 AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C++ compiler does not support -static.])])
 AX_CHECK_COMPILE_FLAG([-msse2], [CXXFLAGS="$CXXFLAGS -msse2"], [CXXFLAGS="$CXXFLAGS -DNOJIT -DZSTD_DISABLE_ASM"])
