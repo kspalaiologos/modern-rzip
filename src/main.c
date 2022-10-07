@@ -18,7 +18,12 @@
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "config.h"
+#include "../include/config.h"
+#include "../include/mrzip_core.h"
+#include "../include/rzip.h"
+#include "../include/util.h"
+#include "../include/stream.h"
+
 #include <stdint.h>
 #include <signal.h>
 #include <unistd.h>
@@ -31,11 +36,6 @@
 #include <dirent.h>
 #include <getopt.h>
 #include <libgen.h>
-
-#include "lrzip_core.h"
-#include "rzip.h"
-#include "util.h"
-#include "stream.h"
 #include <locale.h>
 
 #define MAX_PATH_LEN 4096
@@ -131,9 +131,9 @@ default chosen by heuristic dependent on ram and chosen compression\n");
 	print_output("	-p, --threads value	Set processor count to override number of threads\n");
 	print_output("	-v[v], --verbose	Increase verbosity\n");
 	print_output("	-V, --version		display software version and license\n");
-	print_output("\nMRZIP=NOCONFIG environment variable setting can be used to bypass lrzip.conf.\n\
+	print_output("\nMRZIP=NOCONFIG environment variable setting can be used to bypass mrzip.conf.\n\
 TMP environment variable will be used for storage of temporary files when needed.\n\
-TMPDIR may also be stored in lrzip.conf file.\n\
+TMPDIR may also be stored in mrzip.conf file.\n\
 \nIf no filenames or \"-\" is specified, stdin/out will be used.\n");
 
 }
@@ -312,10 +312,10 @@ int main(int argc, char *argv[])
 		lrzncat = true;
 	}
 
-	/* Get Preloaded Defaults from lrzip.conf
-	 * Look in ., $HOME/.lrzip/, /etc/lrzip.
+	/* Get Preloaded Defaults from mrzip.conf
+	 * Look in ., $HOME/.mrzip/, /etc/mrzip.
 	 * If MRZIP=NOCONFIG is set, then ignore config
-	 * If lrzip.conf sets a compression mode, options_file will be true.
+	 * If mrzip.conf sets a compression mode, options_file will be true.
 	 * This will allow for a test to permit an override of compression mode.
 	 * If there is an override, then all compression settings will be reset
 	 * and command line switches will prevail, including for --lzma.
@@ -325,7 +325,7 @@ int main(int argc, char *argv[])
 		options_file = read_config(control);
 	else if (!strstr(eptr,"NOCONFIG"))
 		options_file = read_config(control);
-	if (options_file && (control->flags & FLAG_NOT_LZMA))		/* if some compression set in lrzip.conf    */
+	if (options_file && (control->flags & FLAG_NOT_LZMA))		/* if some compression set in mrzip.conf    */
 		conf_file_compression_set = true;			/* need this to allow command line override */
 
 	pwd = getenv("PWD");						/* get PWD for output directory test */
@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
 		case 'n':
 		case 'z':
 		case 'B':
-			/* If some compression was chosen in lrzip.conf, allow this one time
+			/* If some compression was chosen in mrzip.conf, allow this one time
 			 * because conf_file_compression_set will be true
 			 */
 			if ((control->flags & FLAG_NOT_LZMA) && conf_file_compression_set == false)
@@ -680,7 +680,7 @@ int main(int argc, char *argv[])
 					fatal("Failed to stat %s\n", infile);
 				isdir = S_ISDIR(istat.st_mode);
 				if (isdir || !S_ISREG(istat.st_mode))
-					fatal("lrzip-next only works directly on regular FILES.\n");
+					fatal("mrzip only works directly on regular FILES.\n");
 			}
 		}
 

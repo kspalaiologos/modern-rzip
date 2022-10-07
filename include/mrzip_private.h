@@ -38,7 +38,7 @@
 #include <string.h>
 #include <alloca.h>
 
-#include "config.h"
+#include "./config.h"
 
 #ifndef __BYTE_ORDER
 # ifndef __BIG_ENDIAN
@@ -76,8 +76,6 @@ extern struct encryption {
 	int	keylen;	/* key length */
 	int	ivlen;	/* where applicable */
 } encryptions[];
-
-#define free(X) do { free((X)); (X) = NULL; } while (0)
 
 #ifndef strdupa
 # define strdupa(str) strcpy(alloca(strlen(str) + 1), str)
@@ -384,7 +382,7 @@ struct rzip_state {
 	} stats;
 };
 
-/* lrzip library callback code removed */
+/* mrzip library callback code removed */
 struct rzip_control {
 	char *locale;			// locale code
 	char *infile;
@@ -534,7 +532,7 @@ extern bool progress_flag ; // print newline when verbose and last print was pro
 static inline void print_stuff(const rzip_control *control, int level, unsigned int line, const char *file, const char *func, const char *format, ...)
 {
 	va_list ap;
-	/* lrzip library callback code removed */
+	/* mrzip library callback code removed */
 	if (control->msgout) {
 		va_start(ap, format);
 		vfprintf(control->msgout, format, ap);
@@ -546,7 +544,7 @@ static inline void print_stuff(const rzip_control *control, int level, unsigned 
 static inline void print_err(const rzip_control *control, unsigned int line, const char *file, const char *func, const char *format, ...)
 {
 	va_list ap;
-	/* lrzip library callback code removed */
+	/* mrzip library callback code removed */
 	if (control->msgerr) {
 		va_start(ap, format);
 		vfprintf(control->msgerr, format, ap);

@@ -18,17 +18,18 @@
 */
 /* rzip decompression algorithm */
 
+#include "../include/rzip.h"
+#include "../include/runzip.h"
+#include "../include/util.h"
+#include "../include/stream.h"
+#include "../include/mrzip_core.h"
+
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include "config.h"
-#include "runzip.h"
-#include "stream.h"
-#include "util.h"
-#include "lrzip_core.h"
 
 /* Work Function to compute hash of a file stream */
 int hash_stream ( FILE *, uchar *, int, int );
@@ -284,7 +285,7 @@ static i64 runzip_chunk(rzip_control *control, int fd_in, i64 expected_size, i64
 
 	prog_tsize = (long double)expected_size / (long double)divisor[divisor_index];
 
-	/* remove checks for lrzip < 0.6 */
+	/* remove checks for mrzip < 0.6 */
 	if (control->major_version == 0) {
 		print_maxverbose("Reading chunk_bytes at %'"PRId64"\n", get_readseek(control, fd_in));
 		/* Read in the stored chunk byte width from the file */
@@ -491,7 +492,7 @@ i64 runzip_fd(rzip_control *control, int fd_in, int fd_out, int fd_hist, i64 exp
 			print_progress("%s integrity of written file matches archive\n", control->hash_label);
 		}
 	} else	/* hash not stored */
-		print_progress("Note this lrzip archive did not have a stored hash value.\n"
+		print_progress("Note this mrzip archive did not have a stored hash value.\n"
 				"The archive decompression was validated with crc32 and the was "
 				"calculated on decompression\n");
 

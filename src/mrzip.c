@@ -18,7 +18,11 @@
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "config.h"
+#include "../include/config.h"
+#include "../include/rzip.h"
+#include "../include/runzip.h"
+#include "../include/util.h"
+#include "../include/stream.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -33,11 +37,6 @@
 #include <arpa/inet.h>
 #include <math.h>
 #include <utime.h>
-
-#include "rzip.h"
-#include "runzip.h"
-#include "util.h"
-#include "stream.h"
 
 #define MAGIC_LEN	(20)	// new v 0.9 magic header
 #define MAGIC_V8_LEN	(18)	// new v 0.8 magic header
@@ -89,7 +88,7 @@ i64 get_ram(rzip_control *control)
 	/* Declare detected RAM to be either the max RAM available from
 	physical memory or the max RAM allowed by RLIMIT_DATA, whatever
 	is smaller, to prevent the heuristics from selecting
-	compression windows which cause lrzip to go into deep swap */
+	compression windows which cause mrzip to go into deep swap */
 
 	if (rl.rlim_max < ramsize)
 		return rl.rlim_max;
@@ -185,7 +184,7 @@ bool write_magic(rzip_control *control)
 
 	/* save compression levels
 	 * high order bits, rzip compression level
-	 * low order bits lrzip-next compression level
+	 * low order bits mrzip compression level
 	 */
 	magic[18] = (control->rzip_compression_level << 4) + control->compression_level;
 
@@ -286,7 +285,7 @@ static void get_expected_size(rzip_control *control, unsigned char *magic)
 	return;
 }
 
-// retrieve magic for lrzip v6
+// retrieve magic for mrzip v6
 
 static void get_magic_v6(rzip_control *control, unsigned char *magic)
 {
@@ -301,7 +300,7 @@ static void get_magic_v6(rzip_control *control, unsigned char *magic)
 	return;
 }
 
-// retrieve magic for lrzip-next v7
+// retrieve magic for mrzip v7
 
 static void get_magic_v7(rzip_control *control, unsigned char *magic)
 {
@@ -316,7 +315,7 @@ static void get_magic_v7(rzip_control *control, unsigned char *magic)
 	return;
 }
 
-// new lrzip-next v8 magic header format.
+// new mrzip v8 magic header format.
 
 static void get_magic_v8(rzip_control *control, unsigned char *magic)
 {
@@ -343,13 +342,13 @@ static void get_magic_v8(rzip_control *control, unsigned char *magic)
 	return;
 }
 
-// new lrzip-next v9 magic header format.
+// new mrzip v9 magic header format.
 
 static void get_magic_v9(rzip_control *control, int fd_in, unsigned char *magic)
 {
 	/* get compression levels
 	 * rzip level is high order bits
-	 * lrzip level is low order bits
+	 * mrzip level is low order bits
 	 */
 	control->compression_level = magic[18] & 0b00001111;
 	control->rzip_compression_level = magic[18] >> 4;
@@ -366,7 +365,7 @@ static bool get_magic(rzip_control *control, int fd_in, unsigned char *magic)
 
 	/* zero out compression levels so info does not show for earlier versions */
 	control->rzip_compression_level = control->compression_level = 0;
-	/* remove checks for lrzip < 0.6 */
+	/* remove checks for mrzip < 0.6 */
 	if (control->major_version == 0) {
 		switch (control->minor_version) {
 		case 6:
@@ -383,7 +382,7 @@ static bool get_magic(rzip_control *control, int fd_in, unsigned char *magic)
 			get_magic_v9(control, fd_in, magic);
 			break;
 		default:
-			print_err("lrzip version %d.%d archive is not supported. Aborting\n",
+			print_err("mrzip version %d.%d archive is not supported. Aborting\n",
 					control->major_version, control->minor_version);
 			return false;
 		}
@@ -403,7 +402,7 @@ static bool read_magic(rzip_control *control, int fd_in, i64 *expected_size)
 		fatal("Failed to read initial magic header\n");
 
 	if (unlikely(strncmp(magic, "LRZI", 4)))
-		fatal("Not an lrzip file\n");
+		fatal("Not an mrzip file\n");
 
 	if (magic[4] == 0) {
 		if (magic[5] < 8)		/* old magic */
@@ -423,12 +422,12 @@ static bool read_magic(rzip_control *control, int fd_in, i64 *expected_size)
 	return true;
 }
 
-/* show lrzip-next version
+/* show mrzip version
  * helps preserve output format when validating
  */
 static void show_version(rzip_control *control)
 {
-	print_verbose("Detected lrzip version %'d.%'d file.\n", control->major_version, control->minor_version);
+	print_verbose("Detected mrzip version %'d.%'d file.\n", control->major_version, control->minor_version);
 }
 
 /* preserve ownership and permissions where possible */
@@ -473,7 +472,7 @@ int open_tmpoutfile(rzip_control *control)
 	if (unlikely(!control->outfile))
 		fatal("Failed to allocate outfile name\n");
 	strcpy(control->outfile, control->tmpdir);
-	strcat(control->outfile, "lrzipout.XXXXXX");
+	strcat(control->outfile, "mrzipout.XXXXXX");
 
 	fd_out = mkstemp(control->outfile);
 	if (fd_out == -1)
@@ -593,7 +592,7 @@ int open_tmpinfile(rzip_control *control)
 	if (unlikely(!control->infile))
 		fatal("Failed to allocate infile name\n");
 	strcpy(control->infile, control->tmpdir);
-	strcat(control->infile, "lrzipin.XXXXXX");
+	strcat(control->infile, "mrzipin.XXXXXX");
 	fd_in = mkstemp(control->infile);
 
 	if (fd_in == -1)
@@ -625,7 +624,7 @@ static bool read_tmpinmagic(rzip_control *control, int fd_in)
 	}
 
 	if (unlikely(strncmp(magic, "LRZI", 4)))
-		fatal("Not an lrzip stream\n");
+		fatal("Not an mrzip stream\n");
 
 	if (magic[4] == 0) {
 		if (magic[5] < 8)		/* old magic */
@@ -780,7 +779,7 @@ static bool get_hash(rzip_control *control, int make_hash)
 	mlock(control->salt_pass, PASS_LEN);
 	mlock(control->hash, HASH_LEN);
 
-	/* lrzip library callback code removed */
+	/* mrzip library callback code removed */
 	/* Disable stdin echo to screen */
 	tcgetattr(fileno(stdin), &termios_p);
 	termios_p.c_lflag &= ~ECHO;
@@ -840,7 +839,7 @@ bool get_header_info(rzip_control *control, int fd_in, uchar *ctype, i64 *c_len,
 		fatal("Failed to read in get_header_info\n");
 
 	*c_len = *u_len = *last_head = 0;
-	/* remove checks for lrzip < 0.6 */
+	/* remove checks for mrzip < 0.6 */
 	if (control->major_version == 0) {
 		// header the same after v 0.4 except for chunk bytes
 		int read_len;
@@ -903,7 +902,7 @@ bool get_fileinfo(rzip_control *control)
 	if (unlikely(stat(control->infile, &fdin_stat)))
 		fatal("File %s not found...\n", control->infile);
 	else if (unlikely(!S_ISREG(fdin_stat.st_mode)))
-		fatal("File %s us not a regular file. lrzip-next cannot continue...\n", control->infile);
+		fatal("File %s us not a regular file. mrzip cannot continue...\n", control->infile);
 	else
 		infilecopy = strdupa(control->infile);
 
@@ -923,10 +922,10 @@ bool get_fileinfo(rzip_control *control)
 	if (INFO) show_version(control);		// show version if not validating
 
 	if (ENCRYPT) {
-		/* can only show info for current lrzip-next files */
+		/* can only show info for current mrzip files */
 		if (control->major_version == 0) {
 			if (control->minor_version < 8)
-				fatal("Cannot show info for earlier encrypted lrzip/lrzip-next files: version %d.%d\n",
+				fatal("Cannot show info for earlier encrypted mrzip/mrzip files: version %d.%d\n",
 						control->major_version, control->minor_version);
 			if (!control->salt_pass_len)		// Only get password if needed
 				if (unlikely(!get_hash(control, 0)))
@@ -934,7 +933,7 @@ bool get_fileinfo(rzip_control *control)
 		}
 	}
 
-	/* remove checks for lrzip < 0.6 */
+	/* remove checks for mrzip < 0.6 */
 	if (control->major_version == 0) {
 		if (unlikely(read(fd_in, &chunk_byte, 1) != 1))
 			fatal("Failed to read chunk_byte in get_fileinfo\n");
@@ -972,7 +971,7 @@ bool get_fileinfo(rzip_control *control)
 						break;
 					case 9: ofs = 22 + control->comment_length;
 						break;
-					default: fatal("Cannot decrypt earlier versions of lrzip-next\n");
+					default: fatal("Cannot decrypt earlier versions of mrzip\n");
 						 break;
 				}
 			}
@@ -1084,7 +1083,7 @@ next_chunk:
 			goto done;
 
 	/* Chunk byte entry */
-	/* remove checks for lrzip < 0.6 */
+	/* remove checks for mrzip < 0.6 */
 	if (control->major_version == 0) {
 		if(!ENCRYPT) {
 			if (unlikely(read(fd_in, &chunk_byte, 1) != 1))
@@ -1120,7 +1119,7 @@ done:
 
 	if (INFO) {
 		print_output("\nSummary\n=======\n");
-		print_output("File: %s\nlrzip-next version: %'d.%'d ", infilecopy,
+		print_output("File: %s\nmrzip version: %'d.%'d ", infilecopy,
 				control->major_version, control->minor_version, ENCRYPT ? "Encrypted " : "");
 		if (ENCRYPT)
 			print_output("%s Encrypted ", control->enc_label);
@@ -1369,7 +1368,7 @@ bool decompress_file(rzip_control *control)
 		if (unlikely(stat(infilecopy, &fdin_stat)))
 			fatal("File %s not found...\n", control->infile);
 		else if (unlikely(!S_ISREG(fdin_stat.st_mode)))
-			fatal("lrzip-next only works on regular FILES\n");
+			fatal("mrzip only works on regular FILES\n");
 		/* regardless, infilecopy has the input filename */
 	}
 
@@ -1517,7 +1516,7 @@ bool decompress_file(rzip_control *control)
 	else {
 		print_progress("Validating file for consistency...");
 		if (unlikely((get_fileinfo(control)) == false))
-			fatal("File validation failed. Corrupt lrzip archive. Cannot continue\n");
+			fatal("File validation failed. Corrupt mrzip archive. Cannot continue\n");
 		print_progress("[OK]");
 		if (!VERBOSE) print_progress("\n");	// output LF to prevent overwriing decompression output
 	}

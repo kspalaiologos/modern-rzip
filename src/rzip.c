@@ -21,7 +21,13 @@
 */
 /* rzip compression algorithm */
 
-#define _GNU_SOURCE
+#include "../include/rzip.h"
+#include "../include/runzip.h"
+#include "../include/util.h"
+#include "../include/stream.h"
+#include "../include/mrzip_core.h"
+
+#define __USE_GNU
 #include <sys/mman.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -31,10 +37,6 @@
 #include <sys/statvfs.h>
 #include <errno.h>
 #include <arpa/inet.h>
-#include "config.h"
-#include "stream.h"
-#include "util.h"
-#include "lrzip_core.h"
 
 #ifndef MAP_ANONYMOUS
 # define MAP_ANONYMOUS MAP_ANON
@@ -640,7 +642,7 @@ static inline void hash_search(rzip_control *control, struct rzip_state *st,
 				if (!STDIN || st->stdin_eof)
 					print_progress("Total: %2d%%  ", pct);
 				print_progress("Chunk: %2d%%\r", chunk_pct);
-				/* lrzip library callback code removed */
+				/* mrzip library callback code removed */
 				lastpct = pct;
 				last_chunkpct = chunk_pct;
 			}

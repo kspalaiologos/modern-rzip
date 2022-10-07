@@ -20,7 +20,7 @@
 #ifndef MRZIP_CORE_H
 #define MRZIP_CORE_H
 
-#include "lrzip_private.h"
+#include "./mrzip_private.h"
 
 i64 get_ram(rzip_control *control);
 i64 nloops(i64 seconds, uchar *b1, uchar *b2);
@@ -48,7 +48,7 @@ extern void zpaq_compress(uchar *c_buf, i64 *c_len, uchar *s_buf, i64 s_len, uch
 			  FILE *msgout, bool progress, int thread);
 extern void zpaq_decompress(uchar *s_buf, i64 *d_len, uchar *c_buf, i64 c_len,
 			    FILE *msgout, bool progress, int thread);
-int ppmdsh_varjr1_compress(char * input, int input_len, char * output, int * output_size);
+int ppmdsh_varjr1_compress(char * input, int input_len, char * output, int * output_size, unsigned level);
 int ppmdsh_varjr1_decompress(char * input, int input_len, char * output, int * output_size);
 
 #endif
