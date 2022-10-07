@@ -43,7 +43,7 @@ $(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
 	@echo "   CCLD" $@
 	@$(CXX) $(CXXFLAGS) -o $@ $^ -lm -pthread -lpthread -lgcrypt -lgpg-error
 	@echo "   STRIP" $@
-	@$(STRIP) --strip-all $(PROGRAM)
+	@$(STRIP) $(PROGRAM)
 
 %.o: %.c
 	@echo "   CC" $<
