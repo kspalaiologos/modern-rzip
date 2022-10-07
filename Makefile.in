@@ -18,9 +18,7 @@ CC=@CC@
 CXX=@CXX@
 STRIP=@STRIP@
 CCONFIG=-Ivendor/zpaq -Ivendor/lz4/lib -Ivendor/zstd/lib -Ivendor/fast-lzma2 \
-        -Ivendor/bzip3/include -Ivendor/ppmd_sh -Ivendor/ppmd_sh/libpmd \
-		-Iinclude -DZSTD_DISABLE_ASM -Wno-pointer-sign -Wno-format-invalid-specifier \
-		-Wno-pragma-pack
+        -Ivendor/bzip3/include -Ivendor/ppmd_sh -Ivendor/ppmd_sh/libpmd -Iinclude
 CFLAGS=@CFLAGS@ $(CCONFIG)
 CXXFLAGS=@CXXFLAGS@ $(CCONFIG)
 PROGRAM=mrzip

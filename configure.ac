@@ -27,7 +27,9 @@ AC_PROG_CC([clang gcc icc])
 
 AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C compiler does not support -static.])])
 AX_CHECK_COMPILE_FLAG([-flto], [CFLAGS="$CFLAGS -flto"])
-AX_CHECK_COMPILE_FLAG([-msse2], [CFLAGS="$CFLAGS -msse2"])
+AX_CHECK_COMPILE_FLAG([-msse2], [CFLAGS="$CFLAGS -msse2"], [CFLAGS="$CFLAGS -DNOJIT -DZSTD_DISABLE_ASM"])
+AX_CHECK_COMPILE_FLAG([-Wno-pointer-sign], [CFLAGS="$CFLAGS -Wno-pointer-sign"])
+AX_CHECK_COMPILE_FLAG([-Wno-pragma-pack], [CFLAGS="$CFLAGS -Wno-pragma-pack"])
 
 AC_CHECK_SIZEOF(long)
 AS_IF([test $ac_cv_sizeof_long = 4], AC_MSG_ERROR([32-bit machines are not supported.]))
@@ -42,15 +44,9 @@ AC_PROG_CXX([clang++ g++ icpc])
 
 AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C++ compiler does not support -static.])])
 AX_CHECK_COMPILE_FLAG([-flto], [CXXFLAGS="$CXXFLAGS -flto"])
-AX_CHECK_COMPILE_FLAG([-msse2], [CXXFLAGS="$CXXFLAGS -msse2"])
-
-AC_CHECK_SIZEOF(long)
-AS_IF([test $ac_cv_sizeof_long = 4], AC_MSG_ERROR([32-bit machines are not supported.]))
-
-AC_CHECK_LIB(pthread, pthread_create, , AC_MSG_ERROR([libpthread missing.]))
-AC_CHECK_LIB(gcrypt, gcry_md_open, , AC_MSG_ERROR([libgcrypt missing.]))
-AC_CHECK_LIB(m, sqrt, , AC_MSG_ERROR([libm missing.]))
-AC_CHECK_LIB(gpg-error, gpg_err_code_to_errno, , AC_MSG_ERROR([libgpg-error-dev missing.]))
+AX_CHECK_COMPILE_FLAG([-msse2], [CXXFLAGS="$CXXFLAGS -msse2"], [CXXFLAGS="$CXXFLAGS -DNOJIT -DZSTD_DISABLE_ASM"])
+AX_CHECK_COMPILE_FLAG([-Wno-pointer-sign], [CXXFLAGS="$CXXFLAGS -Wno-pointer-sign"])
+AX_CHECK_COMPILE_FLAG([-Wno-pragma-pack], [CXXFLAGS="$CXXFLAGS -Wno-pragma-pack"])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

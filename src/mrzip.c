@@ -98,7 +98,7 @@ i64 get_ram(rzip_control * control) {
         /* Workaround for uclibc which doesn't properly support sysconf */
         if (!(meminfo = fopen("/proc/meminfo", "r"))) fatal("Failed to open /proc/meminfo\n");
 
-        while (!feof(meminfo) && !fscanf(meminfo, "MemTotal: %'" PRId64 " kB", &ramsize)) {
+        while (!feof(meminfo) && !fscanf(meminfo, "MemTotal: %" PRId64 " kB", &ramsize)) {
             if (unlikely(fgets(aux, sizeof(aux), meminfo) == NULL)) {
                 fclose(meminfo);
                 fatal("Failed to fgets in get_ram\n");
