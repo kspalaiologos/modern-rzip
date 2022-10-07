@@ -54,3 +54,4 @@ jobs:
           cd /modern-rzip
           ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }}
           make
+
