@@ -19,7 +19,7 @@ CXX=clang++
 CCONFIG=-Ivendor/zpaq -Ivendor/lz4/lib -Ivendor/zstd/lib -Ivendor/fast-lzma2 \
         -Ivendor/bzip3/include -Ivendor/ppmd_sh -Ivendor/ppmd_sh/libpmd \
 		-Iinclude -DZSTD_DISABLE_ASM
-FLAGS=-g3 -O3 -march=native -mtune=native $(CCONFIG)
+FLAGS=-flto -O3 -march=native -mtune=native $(CCONFIG)
 PROGRAM=mrzip
 
 MRZIP_SOURCES=$(wildcard src/*.c)
@@ -40,6 +40,7 @@ MRZIP_LIBS=vendor/cxx_glue.o vendor/zpaq/libzpaq.o \
 
 $(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
 	$(CXX) $(FLAGS) -o $@ $^ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
+	strip --strip-all $(PROGRAM)
 
 %.o: %.c
 	$(CC) $(FLAGS) -c -o $@ $<
