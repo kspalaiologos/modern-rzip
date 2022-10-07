@@ -49,7 +49,7 @@ $(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
 	@echo "   CC" $<
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
-%.o: %.S`
+%.o: %.S
 	@echo "   AS" $<
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
