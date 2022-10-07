@@ -20,6 +20,7 @@ jobs:
         sudo apt update -q -y
         sudo apt install -q -y clang gcc make libgcrypt-dev libgpg-error-dev
         ./configure CC=${{ matrix.compiler }}
+        cat Makefile
     - name: Make
       run: make -j$(nproc)
   
@@ -39,6 +40,7 @@ jobs:
       run: |
         brew install llvm gcc make libgcrypt libgpg-error
         ./configure CC=${{ matrix.compiler }}
+        cat Makefile
     - name: Make
       run: make -j$(nproc)
 
@@ -68,5 +70,6 @@ jobs:
         run: |
           cd /modern-rzip
           ./configure CC=${{ matrix.compiler }} --${{ matrix.feature }}
+          cat Makefile
           make
 
