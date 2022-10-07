@@ -3832,13 +3832,13 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -static" >&5
 printf %s "checking whether C compiler accepts -static... " >&6; }
-if test ${ax_cv_check_cflags___static+y}
+if test ${ax_cv_check_cflags__Werror__Wall__Wextra__static+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
 
   ax_check_save_flags=$CFLAGS
-  CFLAGS=" -static"
+  CFLAGS="-Werror -Wall -Wextra -static"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -3852,16 +3852,16 @@ main (void)
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"
 then :
-  ax_cv_check_cflags___static=yes
+  ax_cv_check_cflags__Werror__Wall__Wextra__static=yes
 else $as_nop
-  ax_cv_check_cflags___static=no
+  ax_cv_check_cflags__Werror__Wall__Wextra__static=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
   CFLAGS=$ax_check_save_flags
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___static" >&5
-printf "%s\n" "$ax_cv_check_cflags___static" >&6; }
-if test "x$ax_cv_check_cflags___static" = xyes
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags__Werror__Wall__Wextra__static" >&5
+printf "%s\n" "$ax_cv_check_cflags__Werror__Wall__Wextra__static" >&6; }
+if test "x$ax_cv_check_cflags__Werror__Wall__Wextra__static" = xyes
 then :
   :
 else $as_nop
@@ -3870,13 +3870,13 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -msse2" >&5
 printf %s "checking whether C compiler accepts -msse2... " >&6; }
-if test ${ax_cv_check_cflags___msse2+y}
+if test ${ax_cv_check_cflags__Werror__Wall__Wextra__msse2+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
 
   ax_check_save_flags=$CFLAGS
-  CFLAGS=" -msse2"
+  CFLAGS="-Werror -Wall -Wextra -msse2"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -3890,16 +3890,16 @@ main (void)
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"
 then :
-  ax_cv_check_cflags___msse2=yes
+  ax_cv_check_cflags__Werror__Wall__Wextra__msse2=yes
 else $as_nop
-  ax_cv_check_cflags___msse2=no
+  ax_cv_check_cflags__Werror__Wall__Wextra__msse2=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
   CFLAGS=$ax_check_save_flags
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___msse2" >&5
-printf "%s\n" "$ax_cv_check_cflags___msse2" >&6; }
-if test "x$ax_cv_check_cflags___msse2" = xyes
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags__Werror__Wall__Wextra__msse2" >&5
+printf "%s\n" "$ax_cv_check_cflags__Werror__Wall__Wextra__msse2" >&6; }
+if test "x$ax_cv_check_cflags__Werror__Wall__Wextra__msse2" = xyes
 then :
   CFLAGS="$CFLAGS -msse2"; ASOBJ="vendor/zstd/lib/decompress/huf_decompress_amd64.o"
 
@@ -3942,7 +3942,7 @@ if test "x$ax_cv_check_cflags___Wno_pointer_sign" = xyes
 then :
   CFLAGS="$CFLAGS -Wno-pointer-sign"
 else $as_nop
-  :
+  -Werror -Wall -Wextra
 fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wno-pragma-pack" >&5
@@ -3980,7 +3980,7 @@ if test "x$ax_cv_check_cflags___Wno_pragma_pack" = xyes
 then :
   CFLAGS="$CFLAGS -Wno-pragma-pack"
 else $as_nop
-  :
+  -Werror -Wall -Wextra
 fi
 
 
@@ -4617,13 +4617,13 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C++ compiler accepts -static" >&5
 printf %s "checking whether C++ compiler accepts -static... " >&6; }
-if test ${ax_cv_check_cxxflags___static+y}
+if test ${ax_cv_check_cxxflags__Werror__Wall__Wextra__static+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
 
   ax_check_save_flags=$CXXFLAGS
-  CXXFLAGS=" -static"
+  CXXFLAGS="-Werror -Wall -Wextra -static"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -4637,16 +4637,16 @@ main (void)
 _ACEOF
 if ac_fn_cxx_try_compile "$LINENO"
 then :
-  ax_cv_check_cxxflags___static=yes
+  ax_cv_check_cxxflags__Werror__Wall__Wextra__static=yes
 else $as_nop
-  ax_cv_check_cxxflags___static=no
+  ax_cv_check_cxxflags__Werror__Wall__Wextra__static=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
   CXXFLAGS=$ax_check_save_flags
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cxxflags___static" >&5
-printf "%s\n" "$ax_cv_check_cxxflags___static" >&6; }
-if test "x$ax_cv_check_cxxflags___static" = xyes
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cxxflags__Werror__Wall__Wextra__static" >&5
+printf "%s\n" "$ax_cv_check_cxxflags__Werror__Wall__Wextra__static" >&6; }
+if test "x$ax_cv_check_cxxflags__Werror__Wall__Wextra__static" = xyes
 then :
   :
 else $as_nop
@@ -4655,13 +4655,13 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C++ compiler accepts -msse2" >&5
 printf %s "checking whether C++ compiler accepts -msse2... " >&6; }
-if test ${ax_cv_check_cxxflags___msse2+y}
+if test ${ax_cv_check_cxxflags__Werror__Wall__Wextra__msse2+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
 
   ax_check_save_flags=$CXXFLAGS
-  CXXFLAGS=" -msse2"
+  CXXFLAGS="-Werror -Wall -Wextra -msse2"
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -4675,16 +4675,16 @@ main (void)
 _ACEOF
 if ac_fn_cxx_try_compile "$LINENO"
 then :
-  ax_cv_check_cxxflags___msse2=yes
+  ax_cv_check_cxxflags__Werror__Wall__Wextra__msse2=yes
 else $as_nop
-  ax_cv_check_cxxflags___msse2=no
+  ax_cv_check_cxxflags__Werror__Wall__Wextra__msse2=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
   CXXFLAGS=$ax_check_save_flags
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cxxflags___msse2" >&5
-printf "%s\n" "$ax_cv_check_cxxflags___msse2" >&6; }
-if test "x$ax_cv_check_cxxflags___msse2" = xyes
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cxxflags__Werror__Wall__Wextra__msse2" >&5
+printf "%s\n" "$ax_cv_check_cxxflags__Werror__Wall__Wextra__msse2" >&6; }
+if test "x$ax_cv_check_cxxflags__Werror__Wall__Wextra__msse2" = xyes
 then :
   CXXFLAGS="$CXXFLAGS -msse2"
 else $as_nop
@@ -4726,7 +4726,7 @@ if test "x$ax_cv_check_cxxflags___Wno_pointer_sign" = xyes
 then :
   CXXFLAGS="$CXXFLAGS -Wno-pointer-sign"
 else $as_nop
-  :
+  -Werror -Wall -Wextra
 fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C++ compiler accepts -Wno-pragma-pack" >&5
@@ -4764,7 +4764,7 @@ if test "x$ax_cv_check_cxxflags___Wno_pragma_pack" = xyes
 then :
   CXXFLAGS="$CXXFLAGS -Wno-pragma-pack"
 else $as_nop
-  :
+  -Werror -Wall -Wextra
 fi
 
   ax_cxx_compile_alternatives="14 1y"    ax_cxx_compile_cxx14_required=true

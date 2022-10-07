@@ -10,12 +10,12 @@ AC_PROG_STRIP
 AC_LANG([C])
 AC_PROG_CC
 
-AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C compiler does not support -static.])])
+AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C compiler does not support -static.])], [-Werror -Wall -Wextra])
 AX_CHECK_COMPILE_FLAG([-msse2],
   [CFLAGS="$CFLAGS -msse2"; AC_SUBST([ASOBJ], ["vendor/zstd/lib/decompress/huf_decompress_amd64.o"])],
-  [CFLAGS="$CFLAGS -DNOJIT -DZSTD_DISABLE_ASM"; AC_SUBST([ASOBJ], [])])
-AX_CHECK_COMPILE_FLAG([-Wno-pointer-sign], [CFLAGS="$CFLAGS -Wno-pointer-sign"])
-AX_CHECK_COMPILE_FLAG([-Wno-pragma-pack], [CFLAGS="$CFLAGS -Wno-pragma-pack"])
+  [CFLAGS="$CFLAGS -DNOJIT -DZSTD_DISABLE_ASM"; AC_SUBST([ASOBJ], [])], [-Werror -Wall -Wextra])
+AX_CHECK_COMPILE_FLAG([-Wno-pointer-sign], [CFLAGS="$CFLAGS -Wno-pointer-sign"], [-Werror -Wall -Wextra])
+AX_CHECK_COMPILE_FLAG([-Wno-pragma-pack], [CFLAGS="$CFLAGS -Wno-pragma-pack"], [-Werror -Wall -Wextra])
 
 AC_CHECK_SIZEOF(long)
 AS_IF([test $ac_cv_sizeof_long = 4], AC_MSG_ERROR([32-bit machines are not supported.]))
@@ -28,10 +28,10 @@ AC_CHECK_LIB(gpg-error, gpg_err_code_to_errno, , AC_MSG_ERROR([libgpg-error-dev 
 AC_LANG([C++])
 AC_PROG_CXX
 
-AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C++ compiler does not support -static.])])
-AX_CHECK_COMPILE_FLAG([-msse2], [CXXFLAGS="$CXXFLAGS -msse2"], [CXXFLAGS="$CXXFLAGS -DNOJIT -DZSTD_DISABLE_ASM"])
-AX_CHECK_COMPILE_FLAG([-Wno-pointer-sign], [CXXFLAGS="$CXXFLAGS -Wno-pointer-sign"])
-AX_CHECK_COMPILE_FLAG([-Wno-pragma-pack], [CXXFLAGS="$CXXFLAGS -Wno-pragma-pack"])
+AX_CHECK_COMPILE_FLAG([-static], [], [AC_MSG_ERROR([C++ compiler does not support -static.])], [-Werror -Wall -Wextra])
+AX_CHECK_COMPILE_FLAG([-msse2], [CXXFLAGS="$CXXFLAGS -msse2"], [CXXFLAGS="$CXXFLAGS -DNOJIT -DZSTD_DISABLE_ASM"], [-Werror -Wall -Wextra])
+AX_CHECK_COMPILE_FLAG([-Wno-pointer-sign], [CXXFLAGS="$CXXFLAGS -Wno-pointer-sign"], [-Werror -Wall -Wextra])
+AX_CHECK_COMPILE_FLAG([-Wno-pragma-pack], [CXXFLAGS="$CXXFLAGS -Wno-pragma-pack"], [-Werror -Wall -Wextra])
 AX_CXX_COMPILE_STDCXX([14], [ext], [])
 
 AC_ARG_ENABLE([lto], [AS_HELP_STRING([--enable-lto], [Enable link-time optimization])], [CFLAGS="$CFLAGS -flto"; CXXFLAGS="$CXXFLAGS -flto"], [])
