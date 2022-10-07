@@ -6,3 +6,7 @@ config.*
 mrzip
 
 .vscode/
+
+Makefile
+
+autom4te.cache/

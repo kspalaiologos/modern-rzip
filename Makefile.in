@@ -14,13 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CC=clang
-CXX=clang++
+CC=@CC@
+CXX=@CXX@
+STRIP=@STRIP@
 CCONFIG=-Ivendor/zpaq -Ivendor/lz4/lib -Ivendor/zstd/lib -Ivendor/fast-lzma2 \
         -Ivendor/bzip3/include -Ivendor/ppmd_sh -Ivendor/ppmd_sh/libpmd \
 		-Iinclude -DZSTD_DISABLE_ASM -Wno-pointer-sign -Wno-format-invalid-specifier \
 		-Wno-pragma-pack
-FLAGS=-flto -O3 -march=native -mtune=native $(CCONFIG)
+CFLAGS=@CFLAGS@ $(CCONFIG)
+CXXFLAGS=@CXXFLAGS@ $(CCONFIG)
 PROGRAM=mrzip
 
 MRZIP_SOURCES=$(wildcard src/*.c)
@@ -43,15 +45,15 @@ $(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
 	@echo "   CCLD" $@
 	@$(CXX) $(FLAGS) -o $@ $^ -lm -pthread -lpthread -lgcrypt -lgpg-error -static
 	@echo "   STRIP" $@
-	@strip --strip-all $(PROGRAM)
+	@$(STRIP) --strip-all $(PROGRAM)
 
 %.o: %.c
 	@echo "   CC" $<
-	@$(CC) $(FLAGS) -c -o $@ $<
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
 %.o: %.cpp
 	@echo "   CXX" $<
-	@$(CXX) $(FLAGS) -c -o $@ $<
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 .PHONY: clean
 clean:
