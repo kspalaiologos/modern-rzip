@@ -198,7 +198,7 @@ static void show_summary(void)
 			if (!LZ4_COMPRESS && !ZSTD_COMPRESS)
 				print_verbose(". LZ4 Compressibility testing %s\n", (LZ4_TEST? "enabled" : "disabled"));
 			if (LZ4_TEST && control->threshold != 100)
-				print_verbose("Threshhold limit = %'d\%\n", control->threshold);
+				print_verbose("Threshhold limit = %'d%%\n", control->threshold);
 			print_verbose("Compression level %'d\n", control->compression_level);
 			print_verbose("RZIP Compression level %'d\n", control->rzip_compression_level);
 			if (ZPAQ_COMPRESS)
