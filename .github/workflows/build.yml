@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ ubuntu-latest, macos-latest ]
+        platform: [ ubuntu-latest ]
         compiler: [ clang, gcc ]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -17,6 +17,23 @@ jobs:
       run: |
         sudo apt update -q -y
         sudo apt install -q -y clang gcc make libgcrypt-dev libgpg-error-dev
+        ./configure CC=${{ matrix.compiler }}
+    - name: Make
+      run: make -j$(nproc)
+  
+  build-macos:
+    name: Build Matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ macos-latest ]
+        compiler: [ clang, gcc ]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Configure
+      run: |
+        brew install clang gcc make libgcrypt libgpg-error
         ./configure CC=${{ matrix.compiler }}
     - name: Make
       run: make -j$(nproc)
