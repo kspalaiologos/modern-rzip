@@ -38,6 +38,14 @@
 #include "../include/stream.h"
 #include "../include/util.h"
 
+#ifndef PRIO_MIN
+#define PRIO_MIN -20
+#endif
+
+#ifndef PRIO_MAX
+#define PRIO_MAX 20
+#endif
+
 #define MAX_PATH_LEN 4096
 
 // progress flag

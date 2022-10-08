@@ -98,7 +98,7 @@ i64 get_ram(rzip_control * control) {
         /* Workaround for uclibc which doesn't properly support sysconf */
         if (!(meminfo = fopen("/proc/meminfo", "r"))) fatal("Failed to open /proc/meminfo\n");
 
-        while (!feof(meminfo) && !fscanf(meminfo, "MemTotal: %'" PRId64 " kB", &ramsize)) {
+        while (!feof(meminfo) && !fscanf(meminfo, "MemTotal: %" PRId64 " kB", &ramsize)) {
             if (unlikely(fgets(aux, sizeof(aux), meminfo) == NULL)) {
                 fclose(meminfo);
                 fatal("Failed to fgets in get_ram\n");
@@ -125,7 +125,7 @@ i64 nloops(i64 seconds, uchar * b1, uchar * b2) {
 }
 
 bool write_magic(rzip_control * control) {
-    unsigned char magic[MAGIC_LEN] = { 'M', 'R', 'Z', 'I', MRZIP_MAJOR_VERSION, MRZIP_MINOR_VERSION };
+    unsigned char magic[MAGIC_LEN] = { 'M', 'R', 'Z', 'I', MRZIP_MAJOR, MRZIP_MINOR };
 
     /* In encrypted files, the size is left unknown
      * and instead the salt is stored here to preserve space. */

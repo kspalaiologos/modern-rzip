@@ -6,7 +6,7 @@ A refurbished fork of lrzip.
 ### Download and Build
 ```
 % git clone --recurse-submodules https://github.com/kspalaiologos/modern-rzip
-% cd modern-rzip && make -j$(nproc)
+% cd modern-rzip && ./configure && make -j$(nproc)
 ```
 
 ### How it Works

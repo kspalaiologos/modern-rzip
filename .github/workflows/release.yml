@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  build-clang:
+    name: Ubuntu Clang
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: recursive
+    - name: Install dependencies
+      run: |
+        sudo apt update -q -y
+        sudo apt install -q -y clang make libgcrypt-dev libgpg-error-dev
+    - name: Configure
+      run: |
+        ./configure CC=clang CXX=clang++ --enable-lto --enable-static
+    - name: Make
+      run: |
+        make -j$(nproc)
+        cp mrzip mrzip-x86_64
+    - name: Publish Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: mrzip-x86_64
+  
+  build-windows-msys2:
+    name: Windows msys2 GCC
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: recursive
+    - uses: msys2/setup-msys2@v2
+      with:
+        install: git gcc make libgcrypt-devel libgpg-error-devel msys2-runtime-devel
+    - name: Configure
+      run: |
+        ./configure CC=gcc CXX=g++ --enable-lto --enable-static
+    - name: Make
+      run: |
+        make -j$(nproc)
+        cp mrzip.exe mrzip-x86_64.exe
+        cp /usr/bin/msys-2.0.dll .
+        zip -q mrzip-x86_64-windows.zip 
+    - name: Publish Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: mrzip-x86_64-windows.zip
+  
+  build-archs:
+    name: aarch64, s390x, ppc64le Debian Clang
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ aarch64, s390x, ppc64le ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: recursive
+    - uses: uraimo/run-on-arch-action@v2
+      name: Run in the container
+      with:
+        arch: ${{ matrix.arch }}
+        distro: stretch
+        shell: /bin/sh
+        dockerRunArgs: |
+          --volume "${PWD}:/modern-rzip"
+        install: |
+          apt update -q -y
+          apt install -q -y clang make libgcrypt-dev libgpg-error-dev
+        run: |
+          cd /modern-rzip
+          ./configure CC=clang CXX=clang++ --enable-static
+          make
+          cp mrzip mrzip-${{ matrix.arch }}
+    - name: Publish Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: mrzip-${{ matrix.arch }}

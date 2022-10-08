@@ -1,8 +1,15 @@
 *~
 *.o
 *.lo
-config.*
 
 mrzip
 
 .vscode/
+
+Makefile
+
+autom4te.cache/
+
+config.log
+
+config.status

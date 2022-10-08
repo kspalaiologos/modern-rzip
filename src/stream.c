@@ -231,7 +231,7 @@ static int zpaq_compress_buf(rzip_control * control, struct compress_thread * ct
     i64 c_len, c_size;
     uchar * c_buf;
     int zpaq_redundancy, zpaq_type = 0, compressibility;
-    char method[10]; /* level, block size, redundancy of compression, type */
+    char method[32]; /* level, block size, redundancy of compression, type */
 
     /* if we're testing compressibility */
     if (LZ4_TEST) {
