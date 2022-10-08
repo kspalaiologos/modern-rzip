@@ -116,7 +116,7 @@ jobs:
           --volume "${PWD}:/modern-rzip"
         install: |
           apt update -q -y
-          apt install -q -y clang make libgcrypt-dev libgpg-error-dev
+          apt install -q -y git clang make libgcrypt-dev libgpg-error-dev
         run: |
           cd /modern-rzip
           ./configure CC=clang CXX=clang++ --enable-static
