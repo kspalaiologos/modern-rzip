@@ -43,7 +43,7 @@ jobs:
         submodules: recursive
     - uses: msys2/setup-msys2@v2
       with:
-        install: git gcc make libgcrypt-devel libgpg-error-devel msys2-runtime-devel
+        install: git gcc make zip libgcrypt-devel libgpg-error-devel msys2-runtime-devel
     - name: Configure
       run: |
         ./configure CC=gcc CXX=g++ --enable-lto --enable-static
