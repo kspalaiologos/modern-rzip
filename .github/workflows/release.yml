@@ -52,7 +52,7 @@ jobs:
         make -j$(nproc)
         cp mrzip.exe mrzip-x86_64.exe
         cp /usr/bin/msys-2.0.dll .
-        zip -q mrzip-x86_64-windows.zip 
+        zip -q mrzip-x86_64-windows.zip mrzip-x86_64.exe msys-2.0.dll
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:

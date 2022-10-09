@@ -1,0 +1,7 @@
+
+- Bigger benchmarks (50GB+?)
+- Parchive/recovery record support
+- An archiver outside of just the LRZIP pass.
+- Ultimate compression mode (try all feasible compressors - might need
+  tangible benchmarks to determine which ones perform the best)
+
