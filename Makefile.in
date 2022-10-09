@@ -65,3 +65,15 @@ clean:
 .PHONY: format
 format:
 	clang-format -i src/*.c include/*.h vendor/*.cpp
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+
+.PHONY: install
+install:
+	build-aux/install-sh -c $(PROGRAM) $(DESTDIR)$(bindir)
+
+.PHONY: uninstall
+uninstall:
+	rm -f $(DESTDIR)$(bindir)/$(PROGRAM)
