@@ -24,11 +24,11 @@ jobs:
     - name: Make
       run: |
         make -j$(nproc)
-        cp mrzip mrzip-x86_64
+        cp mrzip mrzip-x86_64-linux
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
-        files: mrzip-x86_64
+        files: mrzip-x86_64-linux
   
   build-windows-msys2:
     name: Windows msys2 GCC
@@ -85,8 +85,8 @@ jobs:
           cd /modern-rzip
           ./configure CC=clang CXX=clang++ --enable-static
           make
-          cp mrzip mrzip-${{ matrix.arch }}
+          cp mrzip mrzip-${{ matrix.arch }}-linux
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
-        files: mrzip-${{ matrix.arch }}
+        files: mrzip-${{ matrix.arch }}-linux
