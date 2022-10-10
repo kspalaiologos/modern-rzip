@@ -3,10 +3,10 @@ modern-rzip - Modernised LRZIP
 
 A refurbished fork of lrzip.
 
-### Download and Build
+### Download, build and install
 ```
 % git clone --recurse-submodules https://github.com/kspalaiologos/modern-rzip
-% cd modern-rzip && ./configure && make -j$(nproc)
+% cd modern-rzip && ./configure && make -j$(nproc) && sudo make install
 ```
 
 ### How it Works
