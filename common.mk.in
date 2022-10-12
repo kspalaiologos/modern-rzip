@@ -1,0 +1,38 @@
+
+# Copyright (C) Kamila Szewczyk 2022
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+CC=@CC@
+CXX=@CXX@
+STRIP=@STRIP@
+CFLAGS=@CFLAGS@ @VERSION@
+CXXFLAGS=@CXXFLAGS@ @VERSION@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+BIN_DEST=$(DESTDIR)$(bindir)
+
+%.o: %.c
+	@echo "   CC" $<
+	@$(CC) $(CFLAGS) $(CONFIG) -c -o $@ $<
+
+%.o: %.S
+	@echo "   AS" $<
+	@$(CC) $(CFLAGS) $(CONFIG) -c -o $@ $<
+
+%.o: %.cpp
+	@echo "   CXX" $<
+	@$(CXX) $(CXXFLAGS) $(CONFIG) -c -o $@ $<

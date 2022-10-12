@@ -2,14 +2,18 @@
 *.o
 *.lo
 
-mrzip
+/mrzip
 
 .vscode/
 
-Makefile
+/Makefile
 
 autom4te.cache/
 
 config.log
 
 config.status
+
+common.mk
+
+rs-mrzip/rs-mrzip

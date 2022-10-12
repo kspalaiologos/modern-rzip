@@ -14,15 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CC=@CC@
-CXX=@CXX@
-STRIP=@STRIP@
-CCONFIG=-Ivendor/zpaq -Ivendor/lz4/lib -Ivendor/zstd/lib -Ivendor/fast-lzma2 \
-        -Ivendor/bzip3/include -Ivendor/ppmd_sh -Ivendor/ppmd_sh/libpmd -Iinclude \
-		@VERSION@
-CFLAGS=@CFLAGS@ $(CCONFIG)
-CXXFLAGS=@CXXFLAGS@ $(CCONFIG)
+CONFIG=-Ivendor/zpaq -Ivendor/lz4/lib -Ivendor/zstd/lib -Ivendor/fast-lzma2 \
+       -Ivendor/bzip3/include -Ivendor/ppmd_sh -Ivendor/ppmd_sh/libpmd -Iinclude
 PROGRAM=mrzip
+
+all: $(PROGRAM)
+	$(MAKE) -C rs-mrzip all
+
+include common.mk
 
 MRZIP_SOURCES=$(wildcard src/*.c)
 MRZIP_OBJECTS=$(MRZIP_SOURCES:.c=.o)
@@ -46,34 +45,22 @@ $(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
 	@echo "   STRIP" $@
 	@$(STRIP) $(PROGRAM)
 
-%.o: %.c
-	@echo "   CC" $<
-	@$(CC) $(CFLAGS) -c -o $@ $<
-
-%.o: %.S
-	@echo "   AS" $<
-	@$(CC) $(CFLAGS) -c -o $@ $<
-
-%.o: %.cpp
-	@echo "   CXX" $<
-	@$(CXX) $(CXXFLAGS) -c -o $@ $<
-
 .PHONY: clean
 clean:
 	@rm -f $(PROGRAM) $(MRZIP_OBJECTS) $(MRZIP_LIBS)
+	$(MAKE) -C rs-mrzip clean
 
 .PHONY: format
 format:
 	clang-format -i src/*.c include/*.h vendor/*.cpp
-
-prefix = @prefix@
-exec_prefix = @exec_prefix@
-bindir = @bindir@
+	$(MAKE) -C rs-mrzip format
 
 .PHONY: install
 install:
-	build-aux/install-sh -c $(PROGRAM) $(DESTDIR)$(bindir)
+	build-aux/install-sh -c $(PROGRAM) $(BIN_DEST)
+	$(MAKE) -C rs-mrzip install
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(DESTDIR)$(bindir)/$(PROGRAM)
+	rm -f $(BIN_DEST)/$(PROGRAM)
+	$(MAKE) -C rs-mrzip uninstall
