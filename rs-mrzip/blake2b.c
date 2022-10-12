@@ -83,8 +83,6 @@ static void blake2b_init0(blake2b_state * S) {
 }
 
 int blake2b_init(blake2b_state * S, size_t outlen) {
-    if ((!outlen) || (outlen > BLAKE2B_OUTBYTES)) return -1;
-
     S->outlen = (uint8_t)outlen;
     blake2b_init0(S);
 
@@ -188,10 +186,6 @@ int blake2b_update(blake2b_state * S, const void * pin, size_t inlen) {
 int blake2b_final(blake2b_state * S, void * out, size_t outlen) {
     uint8_t buffer[BLAKE2B_OUTBYTES] = { 0 };
     size_t i;
-
-    if (out == NULL || outlen < S->outlen) return -1;
-
-    if (blake2b_is_lastblock(S)) return -1;
 
     blake2b_increment_counter(S, S->buflen);
     blake2b_set_lastblock(S);
