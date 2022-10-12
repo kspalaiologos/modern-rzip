@@ -254,34 +254,6 @@ static void get_expected_size(rzip_control * control, unsigned char * magic) {
     return;
 }
 
-// retrieve magic for mrzip v6
-
-static void get_magic_v6(rzip_control * control, unsigned char * magic) {
-    // only difference is encryption
-
-    if (!magic[22])  // not encrypted
-        get_expected_size(control, magic);
-
-    get_hash_from_magic(control, &magic[21]);
-    get_encryption(control, &magic[22], &magic[6]);
-
-    return;
-}
-
-// retrieve magic for mrzip v7
-
-static void get_magic_v7(rzip_control * control, unsigned char * magic) {
-    int i;
-
-    if (!magic[23])  // not encrypted
-        get_expected_size(control, magic);
-    get_encryption(control, &magic[23], &magic[6]);
-
-    get_hash_from_magic(control, &magic[22]);
-
-    return;
-}
-
 // new mrzip v8 magic header format.
 
 static void get_magic_v8(rzip_control * control, unsigned char * magic) {
@@ -330,15 +302,6 @@ static bool get_magic(rzip_control * control, int fd_in, unsigned char * magic) 
     /* remove checks for mrzip < 0.6 */
     if (control->major_version == 0) {
         switch (control->minor_version) {
-            case 6:
-                get_magic_v6(control, magic);
-                break;
-            case 7:
-                get_magic_v7(control, magic);
-                break;
-            case 8:
-                get_magic_v8(control, magic);
-                break;
             case 9: /* version 0.9 adds two bytes */
                 get_magic_v8(control, magic);
                 get_magic_v9(control, fd_in, magic);
@@ -813,9 +776,6 @@ bool get_fileinfo(rzip_control * control) {
     if (ENCRYPT) {
         /* can only show info for current mrzip files */
         if (control->major_version == 0) {
-            if (control->minor_version < 8)
-                fatal("Cannot show info for earlier encrypted mrzip/mrzip files: version %d.%d\n",
-                      control->major_version, control->minor_version);
             if (!control->salt_pass_len)  // Only get password if needed
                 if (unlikely(!get_hash(control, 0))) return false;
         }
@@ -833,13 +793,6 @@ bool get_fileinfo(rzip_control * control) {
             if (unlikely(chunk_size < 0)) fatal("Invalid chunk size %'" PRId64 "\n", chunk_size);
             /* set header offsets for earlier versions */
             switch (control->minor_version) {
-                case 6:
-                case 7:
-                    ofs = 26;
-                    break;
-                case 8:
-                    ofs = 20;
-                    break;
                 case 9:
                     ofs = 22 + control->comment_length; /* comment? Add length */
                     break;
@@ -854,9 +807,6 @@ bool get_fileinfo(rzip_control * control) {
             // salt is first 8 bytes
             if (control->major_version == 0) {
                 switch (control->minor_version) {
-                    case 8:
-                        ofs = 20;
-                        break;
                     case 9:
                         ofs = 22 + control->comment_length;
                         break;
