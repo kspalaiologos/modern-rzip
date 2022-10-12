@@ -89,7 +89,7 @@ int blake2b_init(blake2b_state * S, size_t outlen) {
     blake2b_init0(S);
 
     S->h[0] ^= 0x01010000 ^ S->outlen;
-    
+
     return 0;
 }
 

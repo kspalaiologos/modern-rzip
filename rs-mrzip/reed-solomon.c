@@ -301,9 +301,8 @@ finish:
     /* Convert to dual- basis */
     for (i = 0; i < 255; i++) data[i] = taltab[data[i]];
 
-    for (i = 0; i < count; i++)
-        eras_pos[i] = loc[i];
-    
+    for (i = 0; i < count; i++) eras_pos[i] = loc[i];
+
     return count;
 }
 

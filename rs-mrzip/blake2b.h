@@ -19,8 +19,8 @@
 #ifndef _BLAKE2B_H
 #define _BLAKE2B_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 enum {
     BLAKE2B_BLOCKBYTES = 128,
