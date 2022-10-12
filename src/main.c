@@ -39,11 +39,11 @@
 #include "../include/util.h"
 
 #ifndef PRIO_MIN
-#define PRIO_MIN -20
+    #define PRIO_MIN -20
 #endif
 
 #ifndef PRIO_MAX
-#define PRIO_MAX 20
+    #define PRIO_MAX 20
 #endif
 
 #define MAX_PATH_LEN 4096
@@ -172,13 +172,20 @@ static void sighandler(int sig) {
 }
 
 static char * compression_type(void) {
-    if(LZMA_COMPRESS) return "LZMA";
-    else if(LZ4_COMPRESS) return "LZ4";
-    else if(PPM_COMPRESS) return "PPM";
-    else if(ZSTD_COMPRESS) return "ZSTD";
-    else if(ZPAQ_COMPRESS) return "ZPAQ";
-    else if(BZIP3_COMPRESS) return "BZIP3";
-    else if(NO_COMPRESS) return "RZIP pre-processing only";
+    if (LZMA_COMPRESS)
+        return "LZMA";
+    else if (LZ4_COMPRESS)
+        return "LZ4";
+    else if (PPM_COMPRESS)
+        return "PPM";
+    else if (ZSTD_COMPRESS)
+        return "ZSTD";
+    else if (ZPAQ_COMPRESS)
+        return "ZPAQ";
+    else if (BZIP3_COMPRESS)
+        return "BZIP3";
+    else if (NO_COMPRESS)
+        return "RZIP pre-processing only";
     fatal("Internal error in main.c:compression_type - unknown compression type.");
 }
 
@@ -206,8 +213,7 @@ static void show_summary(void) {
 
         /* show compression options */
         if (!DECOMPRESS && !TEST_ONLY) {
-            print_verbose(
-                "Compression mode is: %s", compression_type());
+            print_verbose("Compression mode is: %s", compression_type());
             if (!LZ4_COMPRESS && !ZSTD_COMPRESS)
                 print_verbose(". LZ4 Compressibility testing %s\n", (LZ4_TEST ? "enabled" : "disabled"));
             if (LZ4_TEST && control->threshold != 100) print_verbose("Threshhold limit = %'d%%\n", control->threshold);
