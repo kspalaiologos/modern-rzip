@@ -24,6 +24,8 @@
 #ifndef _REED_SOLOMON_H
 #define _REED_SOLOMON_H
 
+#include <stdint.h>
+
 /* Simplified: We can correct a ~131K block of zeroes in the middle
    of the file. */
 #define BLK_LEN (16 * 511)
