@@ -1,7 +1,5 @@
 
 - Bigger benchmarks (50GB+?)
-- Parchive/recovery record support
-- An archiver outside of just the LRZIP pass.
+- An archiver outside of just the LRZIP pass (locality-sensitive hashing and deduping?).
 - Ultimate compression mode (try all feasible compressors - might need
   tangible benchmarks to determine which ones perform the best)
-
