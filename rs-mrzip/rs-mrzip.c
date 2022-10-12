@@ -22,9 +22,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../include/config.h"
 #include "blake2b.h"
 #include "reed-solomon.h"
-#include "../include/config.h"
 
 static uint8_t ec_buf[255 * BLK_LEN], tr_buf[255 * BLK_LEN];
 
@@ -167,18 +167,18 @@ static void usage(void) {
 }
 
 int main(int argc, char * argv[]) {
-    if(argc == 1)
+    if (argc == 1)
         encode();
-    else if(argc != 2)
+    else if (argc != 2)
         usage(), exit(1);
 
-    if(!strcmp(argv[1], "-d") || !strcmp(argv[1], "--decode"))
+    if (!strcmp(argv[1], "-d") || !strcmp(argv[1], "--decode"))
         decode();
-    else if(!strcmp(argv[1], "-e") || !strcmp(argv[1], "--encode"))
+    else if (!strcmp(argv[1], "-e") || !strcmp(argv[1], "--encode"))
         encode();
-    else if(!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help"))
+    else if (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help"))
         usage(), exit(0);
-    else if(!strcmp(argv[1], "-v") || !strcmp(argv[1], "--version"))
+    else if (!strcmp(argv[1], "-v") || !strcmp(argv[1], "--version"))
         version(), exit(0);
     else
         usage(), exit(1);
