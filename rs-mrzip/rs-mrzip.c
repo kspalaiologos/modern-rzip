@@ -22,9 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* We can correct a ~131K block of zeroes in the middle of the file. */
-#define BLK_LEN (16 * 511)
-
 #include "blake2b.h"
 #include "reed-solomon.h"
 
@@ -105,7 +102,7 @@ int main(int argc, char * argv[]) {
             }
 
 process:
-            distribute(tr_buf, ec_buf, BLK_LEN, 255, 1);
+            gather(tr_buf, ec_buf, BLK_LEN, 255);
 
             int eras_pos[32] = { 0 };
             for (i = 0; i < BLK_LEN; i++) {
@@ -137,7 +134,7 @@ process:
                 blake2b_update(s, ec_buf + i * 255, 223);
                 rse32(ec_buf + i * 255, ec_buf + i * 255 + 223);
             }
-            distribute(ec_buf, tr_buf, BLK_LEN, 255, 0);
+            scatter(ec_buf, tr_buf, BLK_LEN, 255);
             if (BLK_LEN * 255 != fwrite(tr_buf, 1, BLK_LEN * 255, stdout)) {
                 perror("fwrite");
                 exit(1);

@@ -16,7 +16,7 @@
 
 include ../common.mk
 
-RS_MRZIP_OBJECTS=rs-mrzip.o
+RS_MRZIP_OBJECTS=rs-mrzip.o reed-solomon.o
 PROGRAM=rs-mrzip
 
 all: $(PROGRAM)
