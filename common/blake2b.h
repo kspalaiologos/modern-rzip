@@ -19,6 +19,10 @@
 #ifndef _BLAKE2B_H
 #define _BLAKE2B_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -43,5 +47,9 @@ typedef struct {
 int blake2b_init(blake2b_state * S, size_t outlen);
 int blake2b_update(blake2b_state * S, const void * in, size_t inlen);
 int blake2b_final(blake2b_state * S, void * out, size_t outlen);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

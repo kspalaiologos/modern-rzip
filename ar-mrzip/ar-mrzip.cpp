@@ -114,9 +114,9 @@ void create(const char * dir) {
         current.size = e.file_size();
 
         // Query the creation/modification times.
-        auto [modification_date, creation_date] = get_times(e.path());
-        current.modification_date = modification_date;
-        current.creation_date = creation_date;
+        auto times = get_times(e.path());
+        current.modification_date = std::get<0>(times);
+        current.creation_date = std::get<1>(times);
 
         // Compute the blake2b checksum.
         current.checksum.from(e.path());
@@ -167,8 +167,8 @@ void create(const char * dir) {
             continue;
         }
         assert(f.archive_offset == current_offset);
-        auto [modification_date, creation_date] = get_times(base_dir / f.name);
-        if(modification_date != f.modification_date) {
+        auto times = get_times(base_dir / f.name);
+        if(std::get<0>(times) != f.modification_date) {
             std::cerr << "warning: file " << f.name << " has been modified since the archive was created." << std::endl;
         }
         int fd = open((base_dir / f.name).c_str(), O_RDONLY);

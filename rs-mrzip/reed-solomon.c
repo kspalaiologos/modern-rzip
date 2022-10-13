@@ -236,7 +236,9 @@ int rsd32(uint8_t data[255], int eras_pos[32], int no_eras) {
     }
 
     /* Find roots of the error+erasure locator polynomial by Chien
-       Search */
+       Search.
+       XXX: Berlekamp's trace algorithm to reduce the degree of polynomials
+       and then solve them using ad-hoc methods would be faster, I think. */
     COPY(&reg[1], &lambda[1], 32);
     count = 0; /* Number of roots of lambda(x) */
     for (i = 1, k = 139; i <= 255; i++, k = (k + 139) % 255) {
