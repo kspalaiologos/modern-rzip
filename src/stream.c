@@ -122,11 +122,11 @@ static int * statequeue = NULL;
 
 static void setup_states(rzip_control * control) {
     int i;
-    states = malloc(sizeof(struct bz3_state *) * control->threads);
-    statequeue = malloc(sizeof(int) * control->threads);
-    memset(statequeue, 0, sizeof(int) * control->threads);
+    states = malloc(sizeof(struct bz3_state *) * (control->threads + 1));
+    statequeue = malloc(sizeof(int) * (control->threads + 1));
+    memset(statequeue, 0, sizeof(int) * (control->threads + 1));
     if (!states) fatal("Failed to allocate memory for bzip3 states\n");
-    for (i = 0; i < control->threads; i++) {
+    for (i = 0; i < (control->threads + 1); i++) {
         states[i] = bz3_new((1 << control->bzip3_bs) * ONE_MB);
         if (!states[i]) fatal("Failed to allocate %dMB bzip3 state #%d.\n", (1 << control->bzip3_bs), i);
     }
@@ -135,7 +135,7 @@ static void setup_states(rzip_control * control) {
 static struct bz3_state * lock_state(rzip_control * control) {
     lock_mutex(control, &bz3_statemutex);
     int i;
-    for (i = 0; i < control->threads; i++) {
+    for (i = 0; i < (control->threads + 1); i++) {
         if (!statequeue[i]) {
             statequeue[i] = 1;
             unlock_mutex(control, &bz3_statemutex);
@@ -150,7 +150,7 @@ static struct bz3_state * lock_state(rzip_control * control) {
 static void unlock_state(rzip_control * control, struct bz3_state * state) {
     lock_mutex(control, &bz3_statemutex);
     int i;
-    for (i = 0; i < control->threads; i++) {
+    for (i = 0; i < (control->threads + 1); i++) {
         if (states[i] == state) {
             statequeue[i] = 0;
             unlock_mutex(control, &bz3_statemutex);
