@@ -19,7 +19,7 @@ class blake2b_cksum {
     private:
         uint8_t digest[64];
     public:
-        void from(const std::filesystem::path & e) {
+        void from(const fs::path & e) {
             int fd = open(e.c_str(), O_RDONLY);
             if(fd == -1) {
                 std::cerr << "open(" << e.c_str() << ") failed: " << strerror(errno) << std::endl;
@@ -59,7 +59,7 @@ class file {
         /* 16 */ uint64_t size;
         /* 24 */ uint64_t archive_offset;
         /* 32 */ blake2b_cksum checksum;
-        /* 96 */ std::filesystem::path name;
+        /* 96 */ fs::path name;
         /* 96 + len(name) + 4 */
 };
 
@@ -85,7 +85,7 @@ void write_u32(uint32_t value) {
     fwrite(bytes, 1, 4, stdout);
 }
 
-std::pair<uint64_t, uint64_t> get_times(const std::filesystem::path & e) {
+std::pair<uint64_t, uint64_t> get_times(const fs::path & e) {
     struct statx stat;
     if (statx(AT_FDCWD, e.c_str(), AT_STATX_SYNC_AS_STAT, STATX_ALL, &stat) == -1) {
         std::cerr << "statx failed: " << strerror(errno) << std::endl;
@@ -98,9 +98,9 @@ std::pair<uint64_t, uint64_t> get_times(const std::filesystem::path & e) {
 void create(const char * dir) {
     std::vector<file> files;
 
-    std::string base_dir = std::filesystem::canonical(dir);
+    std::string base_dir = fs::canonical(dir);
 
-    for(auto & e : std::filesystem::recursive_directory_iterator(dir)) {
+    for(auto & e : fs::recursive_directory_iterator(dir)) {
         if(e.is_directory())
             continue;
         if(!e.is_regular_file()) {
@@ -110,7 +110,7 @@ void create(const char * dir) {
         file current;
 
         // Set basic properties of the file.
-        current.name = std::filesystem::relative(e.path(), base_dir);
+        current.name = fs::relative(e.path(), base_dir);
         current.size = e.file_size();
 
         // Query the creation/modification times.
