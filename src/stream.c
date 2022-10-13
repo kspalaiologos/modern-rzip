@@ -182,16 +182,6 @@ static void bzip3_decompress(rzip_control * control, uchar * s_buf, i64 * s_len,
     unlock_state(control, state);
 }
 
-/*
-  ***** COMPRESSION FUNCTIONS *****
-
-  ZPAQ, BZIP, ZSTD, LZMA, LZ4, BZIP3
-
-  try to compress a buffer. If compression fails for whatever reason then
-  leave uncompressed. Return the compression type in c_type and resulting
-  length in c_len
-*/
-
 static int bzip3_compress_buf(rzip_control * control, struct compress_thread * cthread, int current_thread) {
     i64 c_len, c_size;
     uchar * c_buf;
@@ -419,13 +409,6 @@ static int lz4_compress_buf(rzip_control * control, struct compress_thread * cth
     return 0;
 }
 
-/*
-  ***** DECOMPRESSION FUNCTIONS *****`
-
-  ZPAQ, BZIP, ZSTD, LZMA, LZ4, BZIP3
-
-  try to decompress a buffer. Return 0 on success and -1 on failure.
-*/
 static int bzip3_decompress_buf(rzip_control * control, struct uncomp_thread * ucthread, int current_thread) {
     i64 dlen = ucthread->u_len;
     uchar * c_buf;
