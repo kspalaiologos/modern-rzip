@@ -1,7 +1,7 @@
 modern-rzip - Modernised LRZIP
 ======================
 
-A refurbished fork of lrzip.
+A refurbished fork of lrzip. In active development, not ready for use yet.
 
 ### Download, build and install
 ```
