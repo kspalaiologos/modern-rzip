@@ -83,10 +83,10 @@ static void decode(void) {
                         perror("fwrite");
                         exit(1);
                     }
-                    exit(0);
+                    goto end;
                 }
             }
-            exit(0);
+            goto end;
         }
 
     process:
@@ -104,9 +104,11 @@ static void decode(void) {
         }
     } while (!feof(stdin));
 
+end:
     if (sum_of_failures > 0 || uncorrectable_failures > 0) {
         fprintf(stderr, "rs-mrzip: number of corrected errors: %ld\n", sum_of_failures);
     }
+    exit(0);
 }
 
 static void encode(void) {
