@@ -83,8 +83,8 @@ static void blake2b_init0(blake2b_state * S) {
 }
 
 int blake2b_init(blake2b_state * S, size_t outlen) {
-    S->outlen = (uint8_t)outlen;
     blake2b_init0(S);
+    S->outlen = (uint8_t)outlen;
 
     S->h[0] ^= 0x01010000 ^ S->outlen;
 
