@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include "../include/config.h"
-#include "blake2b.h"
+#include "../common/blake2b.h"
 #include "reed-solomon.h"
 
 static uint8_t ec_buf[255 * BLK_LEN], tr_buf[255 * BLK_LEN];

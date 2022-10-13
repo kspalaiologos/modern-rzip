@@ -18,7 +18,9 @@ CONFIG=-Ivendor/zpaq -Ivendor/lz4/lib -Ivendor/zstd/lib -Ivendor/fast-lzma2 \
        -Ivendor/bzip3/include -Ivendor/ppmd_sh -Ivendor/ppmd_sh/libpmd -Iinclude
 PROGRAM=mrzip
 
-all: $(PROGRAM)
+all:
+	$(MAKE) -C common all
+	$(MAKE) $(PROGRAM)
 	$(MAKE) -C rs-mrzip all
 
 include common.mk
@@ -48,19 +50,23 @@ $(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
 .PHONY: clean
 clean:
 	@rm -f $(PROGRAM) $(MRZIP_OBJECTS) $(MRZIP_LIBS)
+	$(MAKE) -C common clean
 	$(MAKE) -C rs-mrzip clean
 
 .PHONY: format
 format:
 	clang-format -i src/*.c include/*.h vendor/*.cpp
+	$(MAKE) -C common clean
 	$(MAKE) -C rs-mrzip format
 
 .PHONY: install
 install:
 	build-aux/install-sh -c $(PROGRAM) $(BIN_DEST)
+	$(MAKE) -C common clean
 	$(MAKE) -C rs-mrzip install
 
 .PHONY: uninstall
 uninstall:
 	rm -f $(BIN_DEST)/$(PROGRAM)
+	$(MAKE) -C common clean
 	$(MAKE) -C rs-mrzip uninstall

@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "blake2b.h"
+#include "../common/blake2b.h"
 
 class blake2b_cksum {
     private:
