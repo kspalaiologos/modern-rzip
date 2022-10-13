@@ -16,3 +16,6 @@
 [submodule "vendor/ppmd_sh"]
 	path = vendor/ppmd_sh
 	url = https://github.com/modern-rzip/ppmd_sh
+[submodule "vendor/filesystem"]
+	path = vendor/filesystem
+	url = https://github.com/gulrak/filesystem
