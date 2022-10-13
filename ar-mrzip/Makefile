@@ -19,6 +19,7 @@ CONFIG=-I../vendor/filesystem/include/
 include ../common.mk
 
 AR_MRZIP_OBJECTS=ar-mrzip.o
+AR_MRZIP_LIBS=../common/blake2b.o
 PROGRAM=ar-mrzip
 
 all: $(PROGRAM)
