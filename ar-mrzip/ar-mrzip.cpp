@@ -1,5 +1,3 @@
-
-#include <filesystem>
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -13,6 +11,9 @@
 #include <unistd.h>
 
 #include "../common/blake2b.h"
+
+#include <ghc/filesystem.hpp>
+namespace fs = ghc::filesystem;
 
 class blake2b_cksum {
     private:
