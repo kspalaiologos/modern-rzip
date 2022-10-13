@@ -22,6 +22,7 @@ all:
 	$(MAKE) -C common all
 	$(MAKE) $(PROGRAM)
 	$(MAKE) -C rs-mrzip all
+	$(MAKE) -C ar-mrzip all
 
 include common.mk
 
@@ -52,21 +53,23 @@ clean:
 	@rm -f $(PROGRAM) $(MRZIP_OBJECTS) $(MRZIP_LIBS)
 	$(MAKE) -C common clean
 	$(MAKE) -C rs-mrzip clean
+	$(MAKE) -C ar-mrzip clean
 
 .PHONY: format
 format:
 	clang-format -i src/*.c include/*.h vendor/*.cpp
-	$(MAKE) -C common clean
+	$(MAKE) -C common format
 	$(MAKE) -C rs-mrzip format
+	$(MAKE) -C ar-mrzip format
 
 .PHONY: install
 install:
 	build-aux/install-sh -c $(PROGRAM) $(BIN_DEST)
-	$(MAKE) -C common clean
 	$(MAKE) -C rs-mrzip install
+	$(MAKE) -C ar-mrzip install
 
 .PHONY: uninstall
 uninstall:
 	rm -f $(BIN_DEST)/$(PROGRAM)
-	$(MAKE) -C common clean
 	$(MAKE) -C rs-mrzip uninstall
+	$(MAKE) -C ar-mrzip uninstall
