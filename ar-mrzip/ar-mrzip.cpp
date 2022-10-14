@@ -17,76 +17,35 @@ namespace fs = ghc::filesystem;
 #include "tlsh.h"
 
 class blake2b_cksum {
-   private:
-    uint8_t digest[64];
-
    public:
-    void from(const fs::path & e) {
-        int fd = open(e.c_str(), O_RDONLY);
-        if (fd == -1) {
-            std::cerr << "open(" << e.c_str() << ") failed: " << strerror(errno) << std::endl;
-            exit(1);
-        }
-        blake2b_state state;
-        blake2b_init(&state, 64);
-        char buffer[4096];
-        ssize_t read_size;
-        while ((read_size = read(fd, buffer, sizeof(buffer))) > 0) blake2b_update(&state, buffer, read_size);
-        if (read_size == -1) {
-            std::cerr << "read failed: " << strerror(errno) << std::endl;
-            exit(1);
-        }
-        blake2b_final(&state, digest, 64);
-        close(fd);
-    }
+    uint8_t digest[64];
 
     bool operator==(const blake2b_cksum & other) const { return memcmp(digest, other.digest, 64) == 0; }
 
     bool operator<(const blake2b_cksum & other) const { return memcmp(digest, other.digest, 64) < 0; }
-
-    const uint8_t * get_digest() const { return digest; }
 };
 
 class tlsh_digest {
-    private:
-        uint8_t digest[TLSH_STRING_BUFFER_LEN];
     public:
-        void from(const fs::path & e) {
-            Tlsh tlsh;
-            int fd = open(e.c_str(), O_RDONLY);
-            if (fd == -1) {
-                std::cerr << "open(" << e.c_str() << ") failed: " << strerror(errno) << std::endl;
-                exit(1);
-            }
-            char buffer[4096];
-            ssize_t read_size;
-            while ((read_size = read(fd, buffer, sizeof(buffer))) > 0) tlsh.update((const unsigned char *)buffer, read_size);
-            if (read_size == -1) {
-                std::cerr << "read failed: " << strerror(errno) << std::endl;
-                exit(1);
-            }
-            tlsh.final((const unsigned char *)buffer, read_size, 0);
-            close(fd);
-            tlsh.getHash((char *)digest, TLSH_STRING_BUFFER_LEN, 0);
-        }
+        uint8_t digest[TLSH_STRING_BUFFER_LEN];
+
         bool operator==(const tlsh_digest & other) const { return memcmp(digest, other.digest, 64) == 0; }
+
         bool operator<(const tlsh_digest & other) const { return memcmp(digest, other.digest, 64) < 0; }
-        const uint8_t * get_digest() const { return digest; }
 };
 
 class file {
    public:
-    /*  0 */ uint64_t modification_date;
-    /*  8 */ uint64_t size;
-    /* 16 */ uint64_t archive_offset;
-    /* 24 */ blake2b_cksum checksum;
-    /* 88 */ fs::path name;
-    /* 88 + len(name) + 4 */ tlsh_digest digest;
+    uint64_t modification_date;
+    uint64_t size;
+    uint64_t archive_offset;
+    blake2b_cksum checksum;
+    fs::path name;
+    tlsh_digest digest;
     /* 88 + len(name) + 4 + TLSH_STRING_BUFFER_LEN */
 };
 
 void write_u64(uint64_t value) {
-    
     uint8_t bytes[8];
     bytes[0] = (value >> 56) & 0xFF;
     bytes[1] = (value >> 48) & 0xFF;
@@ -106,6 +65,33 @@ void write_u32(uint32_t value) {
     bytes[2] = (value >> 8) & 0xFF;
     bytes[3] = value & 0xFF;
     fwrite(bytes, 1, 4, stdout);
+}
+
+void compute_checksums(file & f, const fs::path & e) {
+    Tlsh tlsh;
+    blake2b_state state;
+    blake2b_init(&state, 64);
+
+    int fd = open(e.c_str(), O_RDONLY);
+    if (fd == -1) {
+        std::cerr << "open(" << e.c_str() << ") failed: " << strerror(errno) << std::endl;
+        exit(1);
+    }
+    char buffer[4096];
+    ssize_t read_size;
+    while ((read_size = read(fd, buffer, sizeof(buffer))) > 0) {
+        tlsh.update((const unsigned char *)buffer, read_size);
+        blake2b_update(&state, buffer, read_size);
+    }
+
+    if (read_size == -1) {
+        std::cerr << "read failed: " << strerror(errno) << std::endl;
+        exit(1);
+    }
+    tlsh.final((const unsigned char *)buffer, read_size, 0);
+    close(fd);
+    tlsh.getHash((char *)f.digest.digest, TLSH_STRING_BUFFER_LEN, 0);
+    blake2b_final(&state, f.checksum.digest, 64);
 }
 
 // Create an archive from directory `dir' and output it to the standard output.
@@ -131,11 +117,8 @@ void create(const char * dir) {
         // Query the creation/modification times.
         current.modification_date = fs::last_write_time(e.path()).time_since_epoch().count();
 
-        // Compute the blake2b checksum.
-        current.checksum.from(e.path());
-
-        // Compute the TLSH digest.
-        current.digest.from(e.path());
+        // Compute the blake2b checksum & TLSH digest.
+        compute_checksums(current, e.path());
 
         // Append the file.
         files.push_back(std::move(current));
@@ -177,8 +160,8 @@ void create(const char * dir) {
         write_u64(f.modification_date);
         write_u64(f.size);
         write_u64(f.archive_offset);
-        fwrite(f.checksum.get_digest(), 1, 64, stdout);
-        fwrite(f.digest.get_digest(), 1, TLSH_STRING_BUFFER_LEN, stdout);
+        fwrite(f.checksum.digest, 1, 64, stdout);
+        fwrite(f.digest.digest, 1, TLSH_STRING_BUFFER_LEN, stdout);
         write_u32(f.name.string().length());
         fwrite(f.name.c_str(), 1, f.name.string().length(), stdout);
     }
