@@ -19,3 +19,6 @@
 [submodule "vendor/filesystem"]
 	path = vendor/filesystem
 	url = https://github.com/gulrak/filesystem
+[submodule "vendor/tlsh"]
+	path = vendor/tlsh
+	url = https://github.com/modern-rzip/tlsh
