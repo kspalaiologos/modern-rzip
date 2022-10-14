@@ -14,6 +14,8 @@
 #include "../common/blake2b.h"
 namespace fs = ghc::filesystem;
 
+#include "tlsh.h"
+
 class blake2b_cksum {
    private:
     uint8_t digest[64];
@@ -45,6 +47,33 @@ class blake2b_cksum {
     const uint8_t * get_digest() const { return digest; }
 };
 
+class tlsh_digest {
+    private:
+        uint8_t digest[TLSH_STRING_BUFFER_LEN];
+    public:
+        void from(const fs::path & e) {
+            Tlsh tlsh;
+            int fd = open(e.c_str(), O_RDONLY);
+            if (fd == -1) {
+                std::cerr << "open(" << e.c_str() << ") failed: " << strerror(errno) << std::endl;
+                exit(1);
+            }
+            char buffer[4096];
+            ssize_t read_size;
+            while ((read_size = read(fd, buffer, sizeof(buffer))) > 0) tlsh.update((const unsigned char *)buffer, read_size);
+            if (read_size == -1) {
+                std::cerr << "read failed: " << strerror(errno) << std::endl;
+                exit(1);
+            }
+            tlsh.final((const unsigned char *)buffer, read_size, 0);
+            close(fd);
+            tlsh.getHash((char *)digest, TLSH_STRING_BUFFER_LEN, 0);
+        }
+        bool operator==(const tlsh_digest & other) const { return memcmp(digest, other.digest, 64) == 0; }
+        bool operator<(const tlsh_digest & other) const { return memcmp(digest, other.digest, 64) < 0; }
+        const uint8_t * get_digest() const { return digest; }
+};
+
 class file {
    public:
     /*  0 */ uint64_t modification_date;
@@ -52,10 +81,12 @@ class file {
     /* 16 */ uint64_t archive_offset;
     /* 24 */ blake2b_cksum checksum;
     /* 88 */ fs::path name;
-    /* 88 + len(name) + 4 */
+    /* 88 + len(name) + 4 */ tlsh_digest digest;
+    /* 88 + len(name) + 4 + TLSH_STRING_BUFFER_LEN */
 };
 
 void write_u64(uint64_t value) {
+    
     uint8_t bytes[8];
     bytes[0] = (value >> 56) & 0xFF;
     bytes[1] = (value >> 48) & 0xFF;
@@ -88,7 +119,7 @@ void create(const char * dir) {
     for (auto & e : fs::recursive_directory_iterator(dir)) {
         if (e.is_directory()) continue;
         if (!e.is_regular_file()) {
-            std::cerr << "skipping non-regular file, symlinks unsupported yet: " << e.path() << std::endl;
+            std::cerr << "skipping non-regular file, symlinks presently unsupported: " << e.path() << std::endl;
             continue;
         }
         file current;
@@ -103,6 +134,9 @@ void create(const char * dir) {
         // Compute the blake2b checksum.
         current.checksum.from(e.path());
 
+        // Compute the TLSH digest.
+        current.digest.from(e.path());
+
         // Append the file.
         files.push_back(std::move(current));
     }
@@ -112,7 +146,7 @@ void create(const char * dir) {
 
     // Compute the size of metadata.
     uint64_t metadata_size = 0;
-    for (auto & f : files) metadata_size += f.name.string().length() + 88 + 4;
+    for (auto & f : files) metadata_size += f.name.string().length() + 88 + 4 + TLSH_STRING_BUFFER_LEN;
     write_u64(metadata_size);
 
     // Collapse files with the same checksum (assign the same offset).
@@ -136,7 +170,7 @@ void create(const char * dir) {
         }
     }
 
-    std::cerr << std::endl << "* Writing metadata..." << std::endl;
+    std::cerr << std::endl << "* Writing metadata (" << (metadata_size/1024) << " KB)..." << std::endl;
 
     // Write the metadata.
     for (auto & f : files) {
@@ -144,9 +178,12 @@ void create(const char * dir) {
         write_u64(f.size);
         write_u64(f.archive_offset);
         fwrite(f.checksum.get_digest(), 1, 64, stdout);
+        fwrite(f.digest.get_digest(), 1, TLSH_STRING_BUFFER_LEN, stdout);
         write_u32(f.name.string().length());
         fwrite(f.name.c_str(), 1, f.name.string().length(), stdout);
     }
+
+    std::cerr << "* Writing the archive..." << std::endl;
 
     // Write the files.
     uint64_t current_offset = 0;
