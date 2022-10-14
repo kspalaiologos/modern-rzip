@@ -310,7 +310,6 @@ int main(int argc, char * argv[]) {
     bool nice_set = false;
     int c, i, ds, long_opt_index;
     int hours, minutes;
-    extern int optind;
     char *eptr, *av; /* for environment */
     char * endptr = NULL;
     char * pwd = NULL;

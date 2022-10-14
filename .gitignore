@@ -17,3 +17,7 @@ config.status
 common.mk
 
 rs-mrzip/rs-mrzip
+
+ar-mrzip/ar-mrzip
+
+*.arm
