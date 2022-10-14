@@ -90,6 +90,9 @@ void create(const char * dir) {
 
     std::string base_dir = fs::canonical(dir);
 
+    std::cerr << "Creating an archive out of " << base_dir << "." << std::endl
+              << "* Scanning files..." << std::endl;
+
     for(auto & e : fs::recursive_directory_iterator(dir)) {
         if(e.is_directory())
             continue;
@@ -123,6 +126,8 @@ void create(const char * dir) {
     write_u64(metadata_size);
 
     // Collapse files with the same checksum (assign the same offset).
+    uint64_t files_size = 0;
+    uint64_t dedup_size = 0;
     {
         std::map<blake2b_cksum, uint64_t> checksums;
         uint64_t offset = 0;
@@ -132,9 +137,17 @@ void create(const char * dir) {
                 offset += f.size;
             } else {
                 f.archive_offset = checksums[f.checksum];
+                dedup_size += f.size;
             }
+
+            files_size += f.size;
+
+            std::cerr << "\33[2K\r" << dedup_size / 1024 << "KB / " << files_size / 1024 << "KB deduped" << std::flush;
         }
     }
+
+    std::cerr << std::endl
+              << "* Writing metadata..." << std::endl;
 
     // Write the metadata.
     for(auto & f : files) {
@@ -155,7 +168,7 @@ void create(const char * dir) {
         }
         assert(f.archive_offset == current_offset);
         if(fs::last_write_time(base_dir / f.name).time_since_epoch().count() != f.modification_date) {
-            std::cerr << "warning: file " << f.name << " has been modified since the archive was created." << std::endl;
+            std::cerr << std::endl << "warning: file " << f.name << " has been modified since the archive was created." << std::endl;
         }
         int fd = open((base_dir / f.name).c_str(), O_RDONLY);
         if(fd == -1) {
@@ -175,7 +188,11 @@ void create(const char * dir) {
             exit(1);
         }
         close(fd);
+        std::cerr << "\33[2K\r" << current_offset / 1024 << "KB / " << (files_size - dedup_size) / 1024 << "KB written" << std::flush;
     }
+
+    std::cerr << std::endl
+              << "* Done." << std::endl;
 
     // Flush the output.
     fflush(stdout);
