@@ -1,65 +1,58 @@
-#include <iostream>
-#include <string>
-#include <cstring>
-#include <map>
-#include <vector>
-#include <cassert>
-#include <tuple>
-
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
-#include "../common/blake2b.h"
-
+#include <cassert>
+#include <cstring>
 #include <ghc/filesystem.hpp>
+#include <iostream>
+#include <map>
+#include <string>
+#include <tuple>
+#include <vector>
+
+#include "../common/blake2b.h"
 namespace fs = ghc::filesystem;
 
 class blake2b_cksum {
-    private:
-        uint8_t digest[64];
-    public:
-        void from(const fs::path & e) {
-            int fd = open(e.c_str(), O_RDONLY);
-            if(fd == -1) {
-                std::cerr << "open(" << e.c_str() << ") failed: " << strerror(errno) << std::endl;
-                exit(1);
-            }
-            blake2b_state state;
-            blake2b_init(&state, 64);
-            char buffer[4096];
-            ssize_t read_size;
-            while((read_size = read(fd, buffer, sizeof(buffer))) > 0)
-                blake2b_update(&state, buffer, read_size);
-            if(read_size == -1) {
-                std::cerr << "read failed: " << strerror(errno) << std::endl;
-                exit(1);
-            }
-            blake2b_final(&state, digest, 64);
-            close(fd);
-        }
+   private:
+    uint8_t digest[64];
 
-        bool operator==(const blake2b_cksum & other) const {
-            return memcmp(digest, other.digest, 64) == 0;
+   public:
+    void from(const fs::path & e) {
+        int fd = open(e.c_str(), O_RDONLY);
+        if (fd == -1) {
+            std::cerr << "open(" << e.c_str() << ") failed: " << strerror(errno) << std::endl;
+            exit(1);
         }
+        blake2b_state state;
+        blake2b_init(&state, 64);
+        char buffer[4096];
+        ssize_t read_size;
+        while ((read_size = read(fd, buffer, sizeof(buffer))) > 0) blake2b_update(&state, buffer, read_size);
+        if (read_size == -1) {
+            std::cerr << "read failed: " << strerror(errno) << std::endl;
+            exit(1);
+        }
+        blake2b_final(&state, digest, 64);
+        close(fd);
+    }
 
-        bool operator<(const blake2b_cksum & other) const {
-            return memcmp(digest, other.digest, 64) < 0;
-        }
+    bool operator==(const blake2b_cksum & other) const { return memcmp(digest, other.digest, 64) == 0; }
 
-        const uint8_t * get_digest() const {
-            return digest;
-        }
+    bool operator<(const blake2b_cksum & other) const { return memcmp(digest, other.digest, 64) < 0; }
+
+    const uint8_t * get_digest() const { return digest; }
 };
 
 class file {
-    public:
-        /*  0 */ uint64_t modification_date;
-        /*  8 */ uint64_t size;
-        /* 16 */ uint64_t archive_offset;
-        /* 24 */ blake2b_cksum checksum;
-        /* 88 */ fs::path name;
-        /* 88 + len(name) + 4 */
+   public:
+    /*  0 */ uint64_t modification_date;
+    /*  8 */ uint64_t size;
+    /* 16 */ uint64_t archive_offset;
+    /* 24 */ blake2b_cksum checksum;
+    /* 88 */ fs::path name;
+    /* 88 + len(name) + 4 */
 };
 
 void write_u64(uint64_t value) {
@@ -90,13 +83,11 @@ void create(const char * dir) {
 
     std::string base_dir = fs::canonical(dir);
 
-    std::cerr << "Creating an archive out of " << base_dir << "." << std::endl
-              << "* Scanning files..." << std::endl;
+    std::cerr << "Creating an archive out of " << base_dir << "." << std::endl << "* Scanning files..." << std::endl;
 
-    for(auto & e : fs::recursive_directory_iterator(dir)) {
-        if(e.is_directory())
-            continue;
-        if(!e.is_regular_file()) {
+    for (auto & e : fs::recursive_directory_iterator(dir)) {
+        if (e.is_directory()) continue;
+        if (!e.is_regular_file()) {
             std::cerr << "skipping non-regular file, symlinks unsupported yet: " << e.path() << std::endl;
             continue;
         }
@@ -121,8 +112,7 @@ void create(const char * dir) {
 
     // Compute the size of metadata.
     uint64_t metadata_size = 0;
-    for(auto & f : files)
-        metadata_size += f.name.string().length() + 88 + 4;
+    for (auto & f : files) metadata_size += f.name.string().length() + 88 + 4;
     write_u64(metadata_size);
 
     // Collapse files with the same checksum (assign the same offset).
@@ -131,8 +121,8 @@ void create(const char * dir) {
     {
         std::map<blake2b_cksum, uint64_t> checksums;
         uint64_t offset = 0;
-        for(auto & f : files) {
-            if(checksums.find(f.checksum) == checksums.end()) {
+        for (auto & f : files) {
+            if (checksums.find(f.checksum) == checksums.end()) {
                 f.archive_offset = checksums[f.checksum] = offset;
                 offset += f.size;
             } else {
@@ -146,11 +136,10 @@ void create(const char * dir) {
         }
     }
 
-    std::cerr << std::endl
-              << "* Writing metadata..." << std::endl;
+    std::cerr << std::endl << "* Writing metadata..." << std::endl;
 
     // Write the metadata.
-    for(auto & f : files) {
+    for (auto & f : files) {
         write_u64(f.modification_date);
         write_u64(f.size);
         write_u64(f.archive_offset);
@@ -161,52 +150,52 @@ void create(const char * dir) {
 
     // Write the files.
     uint64_t current_offset = 0;
-    for(auto & f : files) {
-        if(f.archive_offset < current_offset) {
+    for (auto & f : files) {
+        if (f.archive_offset < current_offset) {
             // File already written, ignore.
             continue;
         }
         assert(f.archive_offset == current_offset);
-        if(fs::last_write_time(base_dir / f.name).time_since_epoch().count() != f.modification_date) {
-            std::cerr << std::endl << "warning: file " << f.name << " has been modified since the archive was created." << std::endl;
+        if (fs::last_write_time(base_dir / f.name).time_since_epoch().count() != f.modification_date) {
+            std::cerr << std::endl
+                      << "warning: file " << f.name << " has been modified since the archive was created." << std::endl;
         }
         int fd = open((base_dir / f.name).c_str(), O_RDONLY);
-        if(fd == -1) {
+        if (fd == -1) {
             std::cerr << "open(" << (base_dir / f.name).c_str() << ") failed: " << strerror(errno) << std::endl;
             exit(1);
         }
         char buffer[4096];
         ssize_t read_size;
         size_t bytes_left = f.size;
-        while((read_size = read(fd, buffer, std::min(sizeof(buffer), bytes_left))) > 0) {
+        while ((read_size = read(fd, buffer, std::min(sizeof(buffer), bytes_left))) > 0) {
             fwrite(buffer, 1, read_size, stdout);
             current_offset += read_size;
             bytes_left -= read_size;
         }
-        if(read_size == -1) {
+        if (read_size == -1) {
             std::cerr << "read failed: " << strerror(errno) << std::endl;
             exit(1);
         }
         close(fd);
-        std::cerr << "\33[2K\r" << current_offset / 1024 << "KB / " << (files_size - dedup_size) / 1024 << "KB written" << std::flush;
+        std::cerr << "\33[2K\r" << current_offset / 1024 << "KB / " << (files_size - dedup_size) / 1024 << "KB written"
+                  << std::flush;
     }
 
-    std::cerr << std::endl
-              << "* Done." << std::endl;
+    std::cerr << std::endl << "* Done." << std::endl;
 
     // Flush the output.
     fflush(stdout);
 }
 
 // Extract the archive from the standard input here.
-void extract() {
-
-}
+void extract() {}
 
 int main(int argc, char * argv[]) {
-    if(argc == 2) {
+    if (argc == 2) {
         create(argv[1]);
-    } else if(argc == 1) {
+    } else if (argc == 1) {
         extract();
-    } else return 1;
+    } else
+        return 1;
 }

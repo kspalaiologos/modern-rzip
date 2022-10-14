@@ -22,8 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/config.h"
 #include "../common/blake2b.h"
+#include "../include/config.h"
 #include "reed-solomon.h"
 
 static uint8_t ec_buf[255 * BLK_LEN], tr_buf[255 * BLK_LEN];
