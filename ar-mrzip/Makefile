@@ -14,11 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CONFIG=-I../vendor/filesystem/include/
+CONFIG=-I../vendor/filesystem/include/ -I../vendor/tlsh/include
 
 include ../common.mk
 
-AR_MRZIP_OBJECTS=ar-mrzip.o
+AR_MRZIP_OBJECTS=ar-mrzip.o ../vendor/tlsh/src/tlsh.o ../vendor/tlsh/src/tlsh_util.o \
+				 ../vendor/tlsh/src/tlsh_impl.o
 AR_MRZIP_LIBS=../common/blake2b.o
 PROGRAM=ar-mrzip
 
