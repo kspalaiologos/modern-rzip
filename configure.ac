@@ -38,7 +38,7 @@ AC_LANG([C++])
 AC_PROG_CXX
 
 AX_CHECK_COMPILE_FLAG([-msse2], [CXXFLAGS="$CXXFLAGS -msse2"], [CXXFLAGS="$CXXFLAGS -DNOJIT -DZSTD_DISABLE_ASM"], [-Werror -Wall -Wextra])
-AX_CXX_COMPILE_STDCXX([11], [ext], [])
+AX_CXX_COMPILE_STDCXX([17], [ext], [])
 
 AC_ARG_ENABLE([lto], [AS_HELP_STRING([--enable-lto], [Enable link-time optimization])], [CFLAGS="$CFLAGS -flto"; CXXFLAGS="$CXXFLAGS -flto"], [])
 AC_ARG_ENABLE([static], [AS_HELP_STRING([--enable-static], [Enable static build])], [CFLAGS="$CFLAGS -static"; CXXFLAGS="$CXXFLAGS -static"], [])
