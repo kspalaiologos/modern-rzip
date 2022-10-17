@@ -7,6 +7,7 @@
 #include <ghc/filesystem.hpp>
 #include <iostream>
 #include <map>
+#include <algorithm>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -25,10 +26,16 @@ class blake2b_cksum {
     bool operator<(const blake2b_cksum & other) const { return memcmp(digest, other.digest, 64) < 0; }
 };
 
+// This needs some explaining. Basically, TLSH is a locality-sensitive hash that assigns a short byte
+// string to a not-so-short file, and in premise, similar files will have similar hashes. We order files
+// for better compression. This problem is somewhat comparable to the Travelling Salesman Problem.
+// I am going to game this problem later by putting hashes in overlapping buckets per population count
+// to speed up the TSP solution. For now we just use an approximation :).
+
 class tlsh_digest {
     public:
         uint8_t digest[TLSH_STRING_BUFFER_LEN];
-
+        
         int compare_to(const tlsh_digest & other) const {
             // Return the amount of bytes that are the same.
             int score = 0;
@@ -115,6 +122,8 @@ void create(const char * dir) {
 
     std::string base_dir = fs::canonical(dir);
 
+    uint64_t total_size = 0;
+
     std::cerr << "Creating an archive out of " << base_dir << "." << std::endl << "* Scanning files..." << std::endl;
 
     for (auto & e : fs::recursive_directory_iterator(dir)) {
@@ -125,18 +134,30 @@ void create(const char * dir) {
         }
         file current;
 
+        std::cerr << "\33[2K\rAdding file " << files.size() << "..." << std::flush;
+
         // Set basic properties of the file.
         current.name = fs::relative(e.path(), base_dir);
-        current.size = e.file_size();
+        total_size += current.size = e.file_size();
 
         // Query the creation/modification times.
         current.modification_date = fs::last_write_time(e.path()).time_since_epoch().count();
 
-        // Compute the blake2b checksum & TLSH digest.
-        compute_checksums(current, e.path());
-
         // Append the file.
         files.push_back(std::move(current));
+    }
+
+    std::cerr << std::endl << "* Computing checksums..." << std::endl;
+
+    // Compute checksums.
+    uint64_t checksums_done = 0;
+    for (auto & e : files) {
+        std::cerr << "\33[2K\rComputing checksums: " << (checksums_done / 1024) << " KB / " << (total_size / 1024) << " KB." << std::flush;
+        
+        // Compute the blake2b checksum & TLSH digest.
+        compute_checksums(e, base_dir / e.name);
+        
+        checksums_done += e.size;
     }
 
     // Write the header.
@@ -149,7 +170,30 @@ void create(const char * dir) {
 
     // Order nodes.
     std::cerr << "* Ordering files..." << std::endl;
-    std::sort(files.begin(), files.end(), [](const file & a, const file & b) { return a.digest < b.digest; });
+    {
+        // Start from node 0.
+        uint64_t next = 0, next_score = 0, c = 0;
+        while(c + 1 < files.size()) {
+            std::cerr << "\33[2K\r" << c << " / " << files.size() << std::flush;
+
+            // Find the next node.
+            for(uint64_t i = c + 1; i < files.size(); i++) {
+                int score = files[c].digest.compare_to(files[i].digest);
+                if(score > next_score) {
+                    next = i;
+                    next_score = score;
+                    // Good enough:
+                    if(next_score >= 60) break;
+                }
+            }
+
+            // Swap.
+            std::swap(files[c + 1], files[next]);
+            next_score = next = 0;
+            c++;
+        }
+    }
+    std::cerr << std::endl;
 
     // Collapse files with the same checksum (assign the same offset).
     uint64_t files_size = 0;
