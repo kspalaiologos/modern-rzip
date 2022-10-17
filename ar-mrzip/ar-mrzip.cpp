@@ -29,9 +29,14 @@ class tlsh_digest {
     public:
         uint8_t digest[TLSH_STRING_BUFFER_LEN];
 
-        bool operator==(const tlsh_digest & other) const { return memcmp(digest, other.digest, 64) == 0; }
-
-        bool operator<(const tlsh_digest & other) const { return memcmp(digest, other.digest, 64) < 0; }
+        int compare_to(const tlsh_digest & other) const {
+            // Return the amount of bytes that are the same.
+            int score = 0;
+            for(int i = 0; i < TLSH_STRING_BUFFER_LEN; i++)
+                if(digest[i] == other.digest[i])
+                    score++;
+            return score;
+        }
 };
 
 class file {
@@ -79,18 +84,28 @@ void compute_checksums(file & f, const fs::path & e) {
     }
     char buffer[4096];
     ssize_t read_size;
-    while ((read_size = read(fd, buffer, sizeof(buffer))) > 0) {
-        tlsh.update((const unsigned char *)buffer, read_size);
-        blake2b_update(&state, buffer, read_size);
+    if(f.size > 500) {
+        while ((read_size = read(fd, buffer, sizeof(buffer))) > 0) {
+            tlsh.update((const unsigned char *)buffer, read_size);
+            blake2b_update(&state, buffer, read_size);
+        }
+    } else {
+        while ((read_size = read(fd, buffer, sizeof(buffer))) > 0) {
+            blake2b_update(&state, buffer, read_size);
+        }
     }
 
     if (read_size == -1) {
         std::cerr << "read failed: " << strerror(errno) << std::endl;
         exit(1);
     }
-    tlsh.final((const unsigned char *)buffer, read_size, 0);
     close(fd);
-    tlsh.getHash((char *)f.digest.digest, TLSH_STRING_BUFFER_LEN, 0);
+    if(f.size > 500) {
+        tlsh.final((const unsigned char *)buffer, read_size, 0);
+        tlsh.getHash((char *)f.digest.digest, TLSH_STRING_BUFFER_LEN, 0);
+    } else {
+        memset(f.digest.digest, 0, TLSH_STRING_BUFFER_LEN);
+    }
     blake2b_final(&state, f.checksum.digest, 64);
 }
 
@@ -131,6 +146,10 @@ void create(const char * dir) {
     uint64_t metadata_size = 0;
     for (auto & f : files) metadata_size += f.name.string().length() + 88 + 4 + TLSH_STRING_BUFFER_LEN;
     write_u64(metadata_size);
+
+    // Order nodes.
+    std::cerr << "* Ordering files..." << std::endl;
+    std::sort(files.begin(), files.end(), [](const file & a, const file & b) { return a.digest < b.digest; });
 
     // Collapse files with the same checksum (assign the same offset).
     uint64_t files_size = 0;
