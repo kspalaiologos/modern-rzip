@@ -13,3 +13,5 @@ Kamila Szewczyk for bzip3
 Yann Collet for lz4 and zstandard
 Matt Mahoney for zpaq
 Con Kolivas and Peter Hyman for lrzip and lrzip-next
+TrendMicro for TLSH
+Steffen Schümann for C++11 Filesystem
