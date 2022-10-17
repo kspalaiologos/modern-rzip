@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <algorithm>
+#include <chrono>
 #include <atomic>
 #include <string>
 #include <mutex>
@@ -17,6 +18,8 @@
 #include "../common/blake2b.h"
 #include <filesystem>
 namespace fs = std::filesystem;
+
+using namespace std::literals::chrono_literals;
 
 #include "tlsh.h"
 
@@ -152,13 +155,14 @@ void create(const char * dir) {
 
     std::cerr << std::endl << "* Computing checksums..." << std::endl;
 
+    int processors = std::thread::hardware_concurrency();
+    if(processors == 0) processors = 4;
+
     // Compute checksums in parallel displaying status every 100MB.
     {
         std::atomic_size_t checksums_done = 0, checksum_total_bytes = 0, checksum_running_bytes = 0;
         std::mutex display_mutex;
 
-        int processors = std::thread::hardware_concurrency();
-        if(processors == 0) processors = 4;
         std::vector<std::thread> threads;
 
         for(int i = 0; i < processors; i++) {
@@ -181,6 +185,7 @@ void create(const char * dir) {
                     std::cerr << "\33[2K\r" << checksum_total_bytes / 1000000 << "MB done ..." << std::flush;
                     checksum_running_bytes = 0;
                 }
+                std::this_thread::sleep_for(10ms);
             }
         });
 
@@ -199,29 +204,39 @@ void create(const char * dir) {
     write_u64(metadata_size);
 
     // Order nodes.
+    std::cerr << std::endl;
     std::cerr << "* Ordering files..." << std::endl;
     {
-        // Start from node 0.
-        uint64_t next = 0, next_score = 0, c = 0;
-        while(c + 1 < files.size()) {
-            std::cerr << "\33[2K\r" << c << " / " << files.size() << std::flush;
+        std::atomic_size_t files_processed = 0;
+        auto order_files = [&](uint64_t first_node, uint64_t last_node) {
+            uint64_t next = 0, next_score = 0, c = 0, files_processed = 0;
+            while(c + 1 < last_node) {
+                std::cerr << "\33[2K\rOrdering files " << files_processed++ << "/" << files.size() << "..." << std::flush;
 
-            // Find the next node.
-            for(uint64_t i = c + 1; i < files.size(); i++) {
-                int score = files[c].digest.compare_to(files[i].digest);
-                if(score > next_score) {
-                    next = i;
-                    next_score = score;
-                    // Good enough:
-                    if(next_score >= 60) break;
+                // Find the next node a'la Roger Hui.
+                size_t bullshit[138] = { 0 };
+
+                for(uint64_t i = c + 1; i < last_node; i++) {
+                    int score = files[c].digest.compare_to(files[i].digest);
+                    bullshit[score] = i;
                 }
-            }
 
-            // Swap.
-            std::swap(files[c + 1], files[next]);
-            next_score = next = 0;
-            c++;
-        }
+                for(int i = 137; i >= 0; i++) {
+                    if(bullshit[i] != 0) {
+                        next = bullshit[i];
+                        next_score = i;
+                        break;
+                    }
+                }
+
+                // Swap.
+                std::swap(files[c + 1], files[next]);
+                next_score = next = 0;
+                c++;
+            }
+        };
+
+        order_files(0, files.size());
     }
     std::cerr << std::endl;
 
