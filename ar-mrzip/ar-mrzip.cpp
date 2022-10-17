@@ -23,6 +23,24 @@ using namespace std::literals::chrono_literals;
 
 #include "tlsh.h"
 
+class latch {
+    private:
+        unsigned delay;
+        std::atomic<unsigned> count;
+    
+    public:
+        latch(unsigned delay) : delay(delay), count(0) {}
+        
+        bool operator()() {
+            count++;
+            if(count == delay) {
+                count = 0;
+                return true;
+            }
+            return false;
+        }
+};
+
 class blake2b_cksum {
    public:
     uint8_t digest[64];
@@ -132,6 +150,8 @@ void create(const char * dir) {
 
     std::cerr << "Creating an archive out of " << base_dir << "." << std::endl << "* Scanning files..." << std::endl;
 
+    latch output_latch(1000);
+
     for (auto & e : fs::recursive_directory_iterator(dir)) {
         if (e.is_directory()) continue;
         if (!e.is_regular_file()) {
@@ -140,7 +160,7 @@ void create(const char * dir) {
         }
         file current;
 
-        std::cerr << "\33[2K\rAdding file " << files.size() << "..." << std::flush;
+        if(output_latch()) std::cerr << "\33[2K\rAdding file " << files.size() << "..." << std::flush;
 
         // Set basic properties of the file.
         current.name = fs::relative(e.path(), base_dir);
@@ -213,7 +233,7 @@ void create(const char * dir) {
             uint64_t next = 0, next_score = 0, c = 0, files_processed = 0;
             while(c + 1 < last_node) {
                 auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() - now;
-                std::cerr << "\33[2K\rOrdering files " << files_processed++ << "/" << files.size() << ", " << (c / (elapsed + 1)) << " files/s..." << std::flush;
+                if(output_latch()) std::cerr << "\33[2K\rOrdering files " << files_processed++ << "/" << files.size() << ", " << (c / (elapsed + 1)) << " files/s..." << std::flush;
 
                 // Find the next node a'la Roger Hui.
                 size_t bullshit[138] = { 0 };
@@ -259,7 +279,7 @@ void create(const char * dir) {
 
             files_size += f.size;
 
-            std::cerr << "\33[2K\r" << dedup_size / 1024 << "KB / " << files_size / 1024 << "KB deduped" << std::flush;
+            if(output_latch()) std::cerr << "\33[2K\r" << dedup_size / 1024 << "KB / " << files_size / 1024 << "KB deduped" << std::flush;
         }
     }
 
@@ -308,8 +328,8 @@ void create(const char * dir) {
             exit(1);
         }
         close(fd);
-        std::cerr << "\33[2K\r" << current_offset / 1024 << "KB / " << (files_size - dedup_size) / 1024 << "KB written"
-                  << std::flush;
+        if(output_latch()) std::cerr << "\33[2K\r" << current_offset / 1024 << "KB / " << (files_size - dedup_size) / 1024 << "KB written"
+                           << std::flush;
     }
 
     std::cerr << std::endl << "* Done." << std::endl;
