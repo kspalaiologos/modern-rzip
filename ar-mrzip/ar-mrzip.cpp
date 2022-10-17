@@ -7,7 +7,10 @@
 #include <iostream>
 #include <map>
 #include <algorithm>
+#include <atomic>
 #include <string>
+#include <mutex>
+#include <thread>
 #include <tuple>
 #include <vector>
 
@@ -149,15 +152,42 @@ void create(const char * dir) {
 
     std::cerr << std::endl << "* Computing checksums..." << std::endl;
 
-    // Compute checksums.
-    uint64_t checksums_done = 0;
-    for (auto & e : files) {
-        std::cerr << "\33[2K\rComputing checksums: " << (checksums_done / 1024) << " KB / " << (total_size / 1024) << " KB." << std::flush;
-        
-        // Compute the blake2b checksum & TLSH digest.
-        compute_checksums(e, base_dir / e.name);
-        
-        checksums_done += e.size;
+    // Compute checksums in parallel displaying status every 100MB.
+    {
+        std::atomic_size_t checksums_done = 0, checksum_total_bytes = 0, checksum_running_bytes = 0;
+        std::mutex display_mutex;
+
+        int processors = std::thread::hardware_concurrency();
+        if(processors == 0) processors = 4;
+        std::vector<std::thread> threads;
+
+        for(int i = 0; i < processors; i++) {
+            threads.emplace_back([&]() {
+                while(true) {
+                    size_t index = checksums_done++;
+                    if(index >= files.size()) break;
+                    compute_checksums(files[index], base_dir / files[index].name);
+                    checksum_total_bytes += files[index].size;
+                    checksum_running_bytes += files[index].size;
+                }
+            });
+        }
+
+        std::atomic_bool stop = false;
+
+        std::thread display = std::thread([&]() {
+            while(!stop) {
+                if(checksum_running_bytes > 100000000) {
+                    std::cerr << "\33[2K\r" << checksum_total_bytes / 1000000 << "MB done ..." << std::flush;
+                    checksum_running_bytes = 0;
+                }
+            }
+        });
+
+        for(auto & t : threads) t.join();
+
+        stop = true;
+        display.join();
     }
 
     // Write the header.

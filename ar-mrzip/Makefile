@@ -27,7 +27,7 @@ all: $(PROGRAM)
 
 $(PROGRAM): $(AR_MRZIP_OBJECTS)
 	@echo "   CCLD" $@
-	@$(CXX) $(CXXFLAGS) -o $@ $^ $(AR_MRZIP_LIBS)
+	@$(CXX) $(CXXFLAGS) -o $@ $^ $(AR_MRZIP_LIBS) -lpthread
 	@echo "   STRIP" $@
 	@$(STRIP) $(PROGRAM)
 
