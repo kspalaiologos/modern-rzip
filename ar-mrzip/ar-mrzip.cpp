@@ -203,15 +203,17 @@ void create(const char * dir) {
     for (auto & f : files) metadata_size += f.name.string().length() + 88 + 4 + TLSH_STRING_BUFFER_LEN;
     write_u64(metadata_size);
 
-    // Order nodes.
+    // Order nodes. TODO: Speedup.
     std::cerr << std::endl;
     std::cerr << "* Ordering files..." << std::endl;
     {
         std::atomic_size_t files_processed = 0;
+        auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         auto order_files = [&](uint64_t first_node, uint64_t last_node) {
             uint64_t next = 0, next_score = 0, c = 0, files_processed = 0;
             while(c + 1 < last_node) {
-                std::cerr << "\33[2K\rOrdering files " << files_processed++ << "/" << files.size() << "..." << std::flush;
+                auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() - now;
+                std::cerr << "\33[2K\rOrdering files " << files_processed++ << "/" << files.size() << ", " << (c / (elapsed + 1)) << " files/s..." << std::flush;
 
                 // Find the next node a'la Roger Hui.
                 size_t bullshit[138] = { 0 };
@@ -276,7 +278,7 @@ void create(const char * dir) {
 
     std::cerr << "* Writing the archive..." << std::endl;
 
-    // Write the files.
+    // Write the files. TODO: print debug info less often.
     uint64_t current_offset = 0;
     for (auto & f : files) {
         if (f.archive_offset < current_offset) {
