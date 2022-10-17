@@ -4,7 +4,6 @@
 
 #include <cassert>
 #include <cstring>
-#include <ghc/filesystem.hpp>
 #include <iostream>
 #include <map>
 #include <algorithm>
@@ -13,7 +12,8 @@
 #include <vector>
 
 #include "../common/blake2b.h"
-namespace fs = ghc::filesystem;
+#include <filesystem>
+namespace fs = std::filesystem;
 
 #include "tlsh.h"
 

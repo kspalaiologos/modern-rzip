@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CONFIG=-I../vendor/filesystem/include/ -I../vendor/tlsh/include
+CONFIG=-I../vendor/tlsh/include
 
 include ../common.mk
 
