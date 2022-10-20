@@ -64,8 +64,7 @@ class tlsh_digest {
             // Return the amount of bytes that are the same.
             int score = 0;
             for(int i = 0; i < TLSH_STRING_BUFFER_LEN; i++)
-                if(digest[i] == other.digest[i])
-                    score++;
+                score += digest[i] == other.digest[i];
             return score;
         }
 };
@@ -138,6 +137,10 @@ void compute_checksums(file & f, const fs::path & e) {
         memset(f.digest.digest, 0, TLSH_STRING_BUFFER_LEN);
     }
     blake2b_final(&state, f.checksum.digest, 64);
+}
+
+int64_t current_time_secs() {
+    return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 // Create an archive from directory `dir' and output it to the standard output.
@@ -228,12 +231,12 @@ void create(const char * dir) {
     std::cerr << "* Ordering files..." << std::endl;
     {
         std::atomic_size_t files_processed = 0;
-        auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        auto now = current_time_secs();
         auto order_files = [&](uint64_t first_node, uint64_t last_node) {
             uint64_t next = 0, next_score = 0, c = 0, files_processed = 0;
             while(c + 1 < last_node) {
-                auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() - now;
-                if(output_latch()) std::cerr << "\33[2K\rOrdering files " << files_processed++ << "/" << files.size() << ", " << (c / (elapsed + 1)) << " files/s..." << std::flush;
+                auto elapsed = current_time_secs() - now;
+                std::cerr << "\33[2K\rOrdering files " << files_processed++ << "/" << files.size() << ", " << (c / (elapsed + 1)) << " files/s..." << std::flush;
 
                 // Find the next node a'la Roger Hui.
                 size_t bullshit[138] = { 0 };
@@ -259,8 +262,10 @@ void create(const char * dir) {
         };
 
         order_files(0, files.size());
+
+        std::cerr << std::endl;
+        std::cerr << "* Time elapsed: " << current_time_secs() - now << "s" << std::endl;
     }
-    std::cerr << std::endl;
 
     // Collapse files with the same checksum (assign the same offset).
     uint64_t files_size = 0;
@@ -306,6 +311,10 @@ void create(const char * dir) {
             continue;
         }
         assert(f.archive_offset == current_offset);
+        if (!fs::exists(base_dir / f.name)) {
+            std::cerr << "File " << f.name << " does not exist anymore, the header has been written already. Fatal error." << std::endl;
+            exit(1);
+        }
         if (fs::last_write_time(base_dir / f.name).time_since_epoch().count() != f.modification_date) {
             std::cerr << std::endl
                       << "warning: file " << f.name << " has been modified since the archive was created." << std::endl;
