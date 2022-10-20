@@ -93,6 +93,12 @@ void write_u64(uint64_t value) {
     fwrite(bytes, 1, 8, stdout);
 }
 
+uint64_t read_u64() {
+    uint8_t bytes[8];
+    fread(bytes, 1, 8, stdin);
+    return ((uint64_t)bytes[0] << 56) | ((uint64_t)bytes[1] << 48) | ((uint64_t)bytes[2] << 40) | ((uint64_t)bytes[3] << 32) | ((uint64_t)bytes[4] << 24) | ((uint64_t)bytes[5] << 16) | ((uint64_t)bytes[6] << 8) | bytes[7];
+}
+
 void write_u32(uint32_t value) {
     uint8_t bytes[4];
     bytes[0] = (value >> 24) & 0xFF;
@@ -100,6 +106,12 @@ void write_u32(uint32_t value) {
     bytes[2] = (value >> 8) & 0xFF;
     bytes[3] = value & 0xFF;
     fwrite(bytes, 1, 4, stdout);
+}
+
+uint32_t read_u32() {
+    uint8_t bytes[4];
+    fread(bytes, 1, 4, stdin);
+    return ((uint32_t)bytes[0] << 24) | ((uint32_t)bytes[1] << 16) | ((uint32_t)bytes[2] << 8) | bytes[3];
 }
 
 void compute_checksums(file & f, const fs::path & e) {
@@ -333,7 +345,144 @@ void create(const char * dir) {
 }
 
 // Extract the archive from the standard input here.
-void extract() {}
+void extract() {
+    char header[5];
+    fread(header, 5, 1, stdin);
+    if (memcmp(header, "ARZIP", 5) != 0) {
+        std::cerr << "Invalid header." << std::endl;
+        exit(1);
+    }
+
+    // Read the metadata.
+    uint64_t metadata_size = read_u64();
+    std::vector<file> files;
+    while (metadata_size > 0) {
+        file f;
+        f.modification_date = read_u64();
+        f.size = read_u64();
+        f.archive_offset = read_u64();
+        fread(f.checksum.digest, 1, 64, stdin);
+        fread(f.digest.digest, 1, TLSH_STRING_BUFFER_LEN, stdin);
+        uint32_t name_length = read_u32();
+        char name[name_length + 1];
+        fread(name, 1, name_length, stdin);
+        name[name_length] = 0;
+        f.name = name;
+        if(fs::path(f.name).is_absolute()) {
+            std::cerr << "Absolute path in archive: " << f.name << std::endl;
+            exit(1);
+        }
+        if(fs::path(f.name).lexically_normal() != fs::path(f.name)) {
+            std::cerr << "Path not normalized: " << f.name << std::endl;
+            exit(1);
+        }
+        files.push_back(f);
+        metadata_size -= name_length + 88 + 4 + TLSH_STRING_BUFFER_LEN;
+    }
+
+    // Sort by the archive offset
+    std::sort(files.begin(), files.end(), [](const file & a, const file & b) { return a.archive_offset < b.archive_offset; });
+
+    // Extract.
+    uint64_t current_offset = 0;
+
+    for(size_t i = 0; i < files.size(); i++) {
+        if(i + 1 < files.size() && files[i].archive_offset == files[i + 1].archive_offset) {
+            // Two or more files point to the same place.
+            size_t duplicates = 0, orig_i = i;
+            do {
+                i++; duplicates++;
+            } while(i < files.size() && files[i].archive_offset == files[i - 1].archive_offset);
+            i--;
+
+            // Create files, update their modification dates.
+            std::vector<int> fds;
+            for(size_t j = 0; j < duplicates; j++) {
+                fs::create_directories(fs::path(files[orig_i + j].name).parent_path());
+                if(fs::exists(files[orig_i + j].name))
+                    std::cerr << "File " << files[orig_i + j].name << " already exists, overwriting." << std::endl;
+                int dest_fd = open(files[orig_i + j].name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                if(dest_fd == -1) {
+                    std::cerr << "open(" << files[orig_i + j].name << ") failed: " << strerror(errno) << std::endl;
+                    exit(1);
+                }
+                fds.push_back(dest_fd);
+                fs::last_write_time(files[orig_i + j].name, fs::file_time_type(fs::file_time_type::duration(files[orig_i + j].modification_date)));
+            }
+            
+            // Copy the data.
+            char buffer[4096];
+            ssize_t read_size;
+            size_t bytes_left = files[orig_i].size;
+            blake2b_state state;
+            blake2b_init(&state, 64);
+            while ((read_size = fread(buffer, 1, std::min(sizeof(buffer), bytes_left), stdin)) > 0) {
+                for(int fd : fds) {
+                    if(write(fd, buffer, read_size) != read_size) {
+                        std::cerr << "write failed: " << strerror(errno) << std::endl;
+                        exit(1);
+                    }
+                }
+                blake2b_update(&state, buffer, read_size);
+                current_offset += read_size;
+                bytes_left -= read_size;
+            }
+            if (read_size == -1) {
+                std::cerr << "fread failed: " << strerror(errno) << std::endl;
+                exit(1);
+            }
+            for(int fd : fds) close(fd);
+
+            char current_digest[64];
+            blake2b_final(&state, current_digest, 64);
+
+            if(memcmp(current_digest, files[orig_i].checksum.digest, 64) != 0) {
+                std::cerr << "Checksum mismatch for " << files[orig_i].name << std::endl;
+                exit(1);
+            }
+        } else {
+            // Create the file, update its modification date.
+            fs::create_directories(fs::path(files[i].name).parent_path());
+            if(fs::exists(files[i].name))
+                std::cerr << "File " << files[i].name << " already exists, overwriting." << std::endl;
+            int dest_fd = open(files[i].name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            if(dest_fd == -1) {
+                std::cerr << "open(" << files[i].name << ") failed: " << strerror(errno) << std::endl;
+                exit(1);
+            }
+            fs::last_write_time(files[i].name, fs::file_time_type(fs::file_time_type::duration(files[i].modification_date)));
+
+            // Copy the data.
+            char buffer[4096];
+            ssize_t read_size;
+            size_t bytes_left = files[i].size;
+            blake2b_state state;
+            blake2b_init(&state, 64);
+            while ((read_size = fread(buffer, 1, std::min(sizeof(buffer), bytes_left), stdin)) > 0) {
+                if(write(dest_fd, buffer, read_size) != read_size) {
+                    std::cerr << "write failed: " << strerror(errno) << std::endl;
+                    exit(1);
+                }
+                blake2b_update(&state, buffer, read_size);
+                current_offset += read_size;
+                bytes_left -= read_size;
+            }
+            if (read_size == -1) {
+                std::cerr << "fread failed: " << strerror(errno) << std::endl;
+                exit(1);
+            }
+            close(dest_fd);
+
+            char current_digest[64];
+            blake2b_final(&state, current_digest, 64);
+
+            if(memcmp(current_digest, files[i].checksum.digest, 64) != 0) {
+                std::cerr << "Checksum mismatch for " << files[i].name << std::endl;
+                exit(1);
+            }
+        }
+    }
+}
 
 int main(int argc, char * argv[]) {
     if (argc == 2) {
