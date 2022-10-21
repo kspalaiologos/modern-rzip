@@ -484,11 +484,94 @@ void extract() {
     }
 }
 
+#include "../include/config.h"
+#include <getopt.h>
+
+static struct option long_options[] = {
+    {"help", no_argument, 0, 'h'},
+    {"version", no_argument, 0, 'V'},
+    {"extract", no_argument, 0, 'x'},
+    {"create", required_argument, 0, 'c'},
+    {"regex", required_argument, 0, 'r'},
+    {"verbose", no_argument, 0, 'v'},
+    {"force", no_argument, 0, 'f'},
+    {"skip", no_argument, 0, 's'},
+    {"dest", required_argument, 0, 'd'},
+    {0, 0, 0, 0}
+};
+
+static char * short_options = "hVxcr:fsd:";
+
+static void usage(void) {
+    std::cerr << (PACKAGE
+                 " version " PACKAGE_VERSION
+                 "\n"
+                 "Copyright (C) Kamila Szewczyk 2022\n"
+                 "Usage: ar-mrzip [options] -d < [archive] OR ar-mrzip [options] [source] > [archive]\n"
+                 "General options:\n"
+                 "--------------------\n"
+                 "	-x, --extract          extract from the archive\n"
+                 "	-c, --create           create an archive from files in directory\n"
+                 "	-r, --regex            perform the operations only on files that match a regex\n"
+                 "	-v, --verbose          enable verbose output for progress monitoring\n"
+                 "  -h, --help             display this message\n"
+                 "  -V, --version          display version information\n"
+                 "  -f, --force            force overwriting of existing files\n"
+                 "  -s, --skip             skip existing files\n"
+                 "  -d, --dest             set the destination directory for extraction\n"
+                 "\n"
+                 "The archive data for extraction is read from standard input. The created archive data is written to standard output.\n");
+}
+
+static void version(void) {
+    std::cerr << (PACKAGE " version " PACKAGE_VERSION
+                         "\n"
+                         "Copyright (C) Kamila Szewczyk 2022\n"
+                         "This is free software.  You may redistribute copies of it under the terms of\n"
+                         "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
+                         "There is NO WARRANTY, to the extent permitted by law.\n");
+}
+
+enum { OP_EXTRACT, OP_CREATE };
+enum { FILE_BEHAVIOUR_FORCE, FILE_BEHAVIOUR_SKIP, FILE_BEHAVIOUR_ASK };
+
 int main(int argc, char * argv[]) {
-    if (argc == 2) {
-        create(argv[1]);
-    } else if (argc == 1) {
-        extract();
-    } else
-        return 1;
+    // Parse arguments using getopt_long.
+    int c; std::string destdir = "."; int operation = OP_EXTRACT; std::string regex = ""; int verbose = 0; int file_behaviour = FILE_BEHAVIOUR_ASK;
+    while((c = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
+        switch(c) {
+            case 'h':
+                usage();
+                return 0;
+            case 'V':
+                version();
+                return 0;
+            case 'd':
+                destdir = optarg;
+                break;
+            case 'x':
+                operation = OP_EXTRACT;
+                break;
+            case 'c':
+                operation = OP_CREATE;
+                break;
+            case 'r':
+                regex = optarg;
+                break;
+            case 's':
+                file_behaviour = FILE_BEHAVIOUR_SKIP;
+                break;
+            case 'f':
+                file_behaviour = FILE_BEHAVIOUR_FORCE;
+                break;
+            case 'v':
+                verbose = 1;
+                break;
+            case '?':
+                return 1;
+            default:
+                abort();
+        }
+    }
+    abort();
 }
