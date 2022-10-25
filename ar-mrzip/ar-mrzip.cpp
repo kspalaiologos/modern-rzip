@@ -500,7 +500,7 @@ static struct option long_options[] = {
     {0, 0, 0, 0}
 };
 
-static char * short_options = "hVxcr:fsd:";
+static const char * short_options = "hVxcr:fsd:";
 
 static void usage(void) {
     std::cerr << (PACKAGE
@@ -573,5 +573,24 @@ int main(int argc, char * argv[]) {
                 abort();
         }
     }
-    abort();
+    
+    if(operation == OP_EXTRACT) {
+        if(optind != argc) {
+            std::cerr << "Too many arguments." << std::endl;
+            return 1;
+        }
+        extract();
+    } else if(operation == OP_CREATE) {
+        if(optind == argc) {
+            std::cerr << "No source directory specified." << std::endl;
+            return 1;
+        }
+        if(optind + 1 != argc) {
+            std::cerr << "Too many arguments." << std::endl;
+            return 1;
+        }
+        create(argv[optind]);
+    }
+    
+    return 0;
 }
