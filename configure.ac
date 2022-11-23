@@ -13,8 +13,10 @@ AC_PROG_CC
 MRZIP_MAJOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f1`
 MRZIP_MINOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f2`
 MRZIP_PATCH=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f3`
+FULLVER=`git describe --tags --abbrev=0 | sed 's/v//'`
 VERSION="-DMRZIP_MAJOR=$MRZIP_MAJOR -DMRZIP_MINOR=$MRZIP_MINOR -DMRZIP_PATCH=$MRZIP_PATCH"
 AC_SUBST([VERSION])
+AC_SUBST([FULLVER])
 
 AC_CHECK_HEADER([windows.h], [AC_SUBST([WINDOWS], [1])], [AC_SUBST([WINDOWS], [0])])
 

@@ -660,6 +660,7 @@ LIBICONV
 LIBINTL
 ASOBJ
 WINDOWS
+FULLVER
 VERSION
 OBJEXT
 EXEEXT
@@ -3900,7 +3901,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 MRZIP_MAJOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f1`
 MRZIP_MINOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f2`
 MRZIP_PATCH=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f3`
+FULLVER=`git describe --tags --abbrev=0 | sed 's/v//'`
 VERSION="-DMRZIP_MAJOR=$MRZIP_MAJOR -DMRZIP_MINOR=$MRZIP_MINOR -DMRZIP_PATCH=$MRZIP_PATCH"
+
 
 
 
