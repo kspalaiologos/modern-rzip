@@ -25,10 +25,13 @@ jobs:
       run: |
         make -j$(nproc)
         cp mrzip mrzip-x86_64-linux
+        cp rs-mrzip/rs-mrzip rs-mrzip-x86_64-linux
+        cp ar-mrzip/ar-mrzip ar-mrzip-x86_64-linux
+        zip mrzip-x86_64-linux.zip mrzip-x86_64-linux rs-mrzip-x86_64-linux ar-mrzip-x86_64-linux
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
-        files: mrzip-x86_64-linux
+        files: mrzip-x86_64-linux.zip
   
   build-windows-msys2:
     name: Windows msys2 GCC
@@ -52,7 +55,9 @@ jobs:
         make -j$(nproc)
         cp mrzip.exe mrzip-x86_64.exe
         cp /usr/bin/msys-2.0.dll .
-        zip -q mrzip-x86_64-windows.zip mrzip-x86_64.exe msys-2.0.dll
+        cp rs-mrzip/rs-mrzip.exe rs-mrzip-x86_64.exe
+        cp ar-mrzip/ar-mrzip.exe ar-mrzip-x86_64.exe
+        zip -q mrzip-x86_64-windows.zip mrzip-x86_64.exe ar-mrzip-x86_64.exe rs-mrzip-x86_64.exe msys-2.0.dll
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
@@ -86,7 +91,10 @@ jobs:
           ./configure CC=clang CXX=clang++ --enable-static
           make
           cp mrzip mrzip-${{ matrix.arch }}-linux
+          cp rs-mrzip/rs-mrzip rs-mrzip-${{ matrix.arch }}-linux
+          cp ar-mrzip/ar-mrzip ar-mrzip-${{ matrix.arch }}-linux
+          zip mrzip-${{ matrix.arch }}-linux.zip mrzip-${{ matrix.arch }}-linux rs-mrzip-${{ matrix.arch }}-linux ar-mrzip-${{ matrix.arch }}-linux
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
-        files: mrzip-${{ matrix.arch }}-linux
+        files: mrzip-${{ matrix.arch }}-linux.zip
