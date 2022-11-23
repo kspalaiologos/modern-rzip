@@ -403,7 +403,7 @@ static bool fwrite_stdout(rzip_control * control, void * buf, i64 len) {
     while (len > 0) {
         nmemb = len;
         ret = fwrite(offset_buf, 1, nmemb, control->outFILE);
-        if (unlikely(ret != -1)) fatal("Failed to fwrite %'" PRId64 " bytes in fwrite_stdout\n", nmemb);
+        if (unlikely(ret == -1)) fatal("Failed to fwrite %'" PRId64 " bytes in fwrite_stdout\n", nmemb);
         len -= ret;
         offset_buf += ret;
         total += ret;
