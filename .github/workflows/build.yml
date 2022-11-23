@@ -5,7 +5,7 @@ on: [ push, pull_request ]
 jobs:
   build-gcc:
     name: Ubuntu GCC
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
@@ -23,7 +23,7 @@ jobs:
   
   build-clang:
     name: Ubuntu Clang
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
@@ -100,7 +100,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [ aarch64, s390x, ppc64le ]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
@@ -128,7 +128,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [ aarch64, s390x, ppc64le ]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
