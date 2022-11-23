@@ -153,19 +153,22 @@ static void encode(void) {
 }
 
 static void version(void) {
-    fprintf(stderr, "rs-mrzip (" PACKAGE " version " PACKAGE_VERSION ").\n");
-    fprintf(stderr, "copyright (C) Kamila Szewczyk 2022\n");
-    fprintf(stderr, "copyright (C) Phil Karn 1999\n");
+    fprintf(stderr, "rs-mrzip (" PACKAGE " version " PACKAGE_VERSION ").\n"
+                    "Copyright (C) Kamila Szewczyk 2022\n"
+                    "Copyright (C) Phil Karn 1999\n"
+                    "This is free software.  You may redistribute copies of it under the terms of\n"
+                    "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n"
+                    "There is NO WARRANTY, to the extent permitted by law.\n");
 }
 
 static void usage(void) {
     version();
-    fprintf(stderr, "usage: rs-mrzip [-e/-d/-h/-v] < input > output\n");
-    fprintf(stderr, "options:\n");
-    fprintf(stderr, "  -e: encode (default)\n");
-    fprintf(stderr, "  -d: decode\n");
-    fprintf(stderr, "  -h: print this help\n");
-    fprintf(stderr, "  -v: print version\n");
+    fprintf(stderr, "usage: rs-mrzip [-e/-d/-h/-v] < input > output\n"
+                    "options:\n"
+                    "  -e: encode (default)\n"
+                    "  -d: decode\n"
+                    "  -h: print this help\n"
+                    "  -v: print version\n");
 }
 
 int main(int argc, char * argv[]) {
