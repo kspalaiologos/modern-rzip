@@ -175,7 +175,7 @@ void create(const char * dir) {
         }
         file current;
 
-        if(output_latch()) std::cerr << "\33[2K\rAdding file " << files.size() << "..." << std::flush;
+        std::cerr << "\33[2K\rAdding file " << files.size() << ": " << e.path() << "..." << std::flush;
 
         // Set basic properties of the file.
         current.name = fs::relative(e.path(), base_dir);
@@ -518,7 +518,7 @@ static void usage(void) {
                  "  -V, --version          display version information\n"
                  "  -f, --force            force overwriting of existing files\n"
                  "  -s, --skip             skip existing files\n"
-                 "  -d, --dest             set the destination directory for extraction\n"
+                 "  -d, --dir              set the destination directory for extraction or source directory for archiving\n"
                  "\n"
                  "The archive data for extraction is read from standard input. The created archive data is written to standard output.\n");
 }
@@ -538,6 +538,7 @@ enum { FILE_BEHAVIOUR_FORCE, FILE_BEHAVIOUR_SKIP, FILE_BEHAVIOUR_ASK };
 int main(int argc, char * argv[]) {
     // Parse arguments using getopt_long.
     int c; std::string destdir = "."; int operation = OP_EXTRACT; std::string regex = ""; int verbose = 0; int file_behaviour = FILE_BEHAVIOUR_ASK;
+
     while((c = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
         switch(c) {
             case 'h':
