@@ -39,7 +39,7 @@ FLZMA2_OBJECTS=$(FLZMA2_SOURCES:.c=.o)
 
 MRZIP_LIBS=vendor/cxx_glue.o vendor/zpaq/libzpaq.o \
            vendor/lz4/lib/lz4.o vendor/lz4/lib/lz4hc.o \
-		   vendor/bzip3/src/libbz3.o -DVERSION=@FULLVER@ @ASOBJ@ \
+		   vendor/bzip3/src/libbz3.o @ASOBJ@ \
 		   $(ZSTD_OBJECTS) $(FLZMA2_OBJECTS)
 
 $(PROGRAM): $(MRZIP_OBJECTS) $(MRZIP_LIBS)
