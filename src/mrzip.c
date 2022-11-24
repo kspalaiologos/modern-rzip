@@ -161,7 +161,7 @@ bool write_magic(rzip_control * control) {
     } else if (BZIP3_COMPRESS) {
         /* Save block size. ZPAQ compression level is from 3 to 5, so this is sound.
            bzip3 blocksize is from 1 to 8 (or 0 to 7). */
-        magic[17] = 0b11111000 | (control->bzip3_bs - 1);
+        magic[17] = 0b11110000 + bzip3_prop_from_block_size(control->bzip3_block_size);
     }
 
     /* save compression levels
@@ -263,14 +263,17 @@ static void get_magic_v8(rzip_control * control, unsigned char * magic) {
         get_expected_size(control, magic);
     get_encryption(control, &magic[15], &magic[6]);
 
-    if ((magic[17] & 0b11111000) == 0b11111000) {
-        // bzip3 block size stuff.
-        control->bzip3_bs = (magic[17] & 0b00000111) + 1;
-    } else if (magic[17] & 0b10000000)  // zpaq block and compression level stored
+    if ((magic[17] & 0b10000000))  // bzip3 or zpaq block sizes/levels stored
     {
-        control->zpaq_bs = magic[17] & 0b00001111;  // low order bits are block size
-        magic[17] &= 0b01110000;                    // strip high bit
-        control->zpaq_level = magic[17] >> 4;       // divide by 16
+        if ((magic[17] & 0b11110000) == 0b11110000) {                                   // bzip3 block size
+            control->bzip3_bs = magic[17] & 0b00001111;                                 // bzip3 block size code 0 to 8
+            control->bzip3_block_size = BZIP3_BLOCK_SIZE_FROM_PROP(control->bzip3_bs);  // Real Block Size
+        } else  // zpaq block and compression level stored
+        {
+            control->zpaq_bs = magic[17] & 0b00001111;  // low order bits are block size
+            magic[17] &= 0b01110000;                    // strip high bit
+            control->zpaq_level = magic[17] >> 4;       // divide by 16
+        }
     }
 
     get_hash_from_magic(control, &magic[14]);
@@ -420,8 +423,8 @@ bool write_fdout(rzip_control * control, void * buf, i64 len) {
         nmemb = len;
         ret = write(control->fd_out, offset_buf, (size_t)nmemb);
         /* error if ret == -1 only. Otherwise, buffer not wholly written */
-		if (unlikely(ret == -1))	/* error, not underflow */
-			fatal("Failed to write %'"PRId64" bytes to fd_out in write_fdout\n", nmemb);
+        if (unlikely(ret == -1)) /* error, not underflow */
+            fatal("Failed to write %'" PRId64 " bytes to fd_out in write_fdout\n", nmemb);
         len -= ret;
         offset_buf += ret;
     }
@@ -975,7 +978,8 @@ done:
             else  // early 0.8 or <0.8 file without zpaq coding in magic header
                 print_output("\n");
         } else if (save_ctype == BZIP3_COMPRESS) {
-            print_output("rzip + bzip3 -- Block Size: %d", (1 << control->bzip3_bs) * ONE_MB);
+            print_output("rzip + bzip3 -- Block Size: %d - %'" PRIu32 "\n", control->bzip3_bs,
+                         control->bzip3_block_size);
         } else
             print_output("Dunno wtf\n");
 

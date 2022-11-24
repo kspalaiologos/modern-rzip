@@ -235,14 +235,12 @@ static inline unsigned char lzma2_prop_from_dic(u32 dicSize) {
 }
 
 /* re-purposed for bzip3. This value will be the actual block size from 32MB to 512MB - 1 */
-#define BZIP3_BLOCK_SIZE_FROM_PROP(p) (p == 8 ? 0x1FFFFFFF : (((u32)2 | ((p) & 1)) << ((p) / 2 + 24)))
-static inline unsigned char bzip3_prop_from_block_size(u32 bs)
-{
-	unsigned i;
-	for (i = 0; i <= 8; i++)
-		if (bs <= BZIP3_BLOCK_SIZE_FROM_PROP(i))
-			break;
-	return (unsigned char)i;
+#define BZIP3_BLOCK_SIZE_FROM_PROP(p) (p == 8 ? 0x1FFFFFFF : (((u32)2 | ((p)&1)) << ((p) / 2 + 24)))
+static inline unsigned char bzip3_prop_from_block_size(u32 bs) {
+    unsigned i;
+    for (i = 0; i <= 8; i++)
+        if (bs <= BZIP3_BLOCK_SIZE_FROM_PROP(i)) break;
+    return (unsigned char)i;
 }
 
 #define FLAG_SHOW_PROGRESS (1 << 0)
@@ -451,7 +449,8 @@ struct rzip_control {
     unsigned delta;                // delta flag offset (default 1)
     unsigned zpaq_level;           // zpaq level
     unsigned zpaq_bs;              // zpaq default block size
-    unsigned bzip3_bs;             // bzip3 block size
+    unsigned bzip3_bs;             // bzip3 block size code (0-8)
+    u32 bzip3_block_size;          // actual block size decoded
     i64 window;
     unsigned long flags;
     i64 ramsize;

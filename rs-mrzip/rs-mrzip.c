@@ -158,7 +158,8 @@ static void encode(void) {
 }
 
 static void version(void) {
-    fprintf(stderr, "rs-mrzip (" PACKAGE " version " PACKAGE_VERSION ").\n"
+    fprintf(stderr, "rs-mrzip (" PACKAGE " version " PACKAGE_VERSION
+                    ").\n"
                     "Copyright (C) Kamila Szewczyk 2022\n"
                     "Copyright (C) Phil Karn 1999\n"
                     "This is free software.  You may redistribute copies of it under the terms of\n"
@@ -168,20 +169,21 @@ static void version(void) {
 
 static void usage(void) {
     version();
-    fprintf(stderr, "usage: rs-mrzip [-e/-d/-h/-v] < input > output\n"
-                    "options:\n"
-                    "  -e: encode (default)\n"
-                    "  -d: decode\n"
-                    "  -h: print this help\n"
-                    "  -v: print version\n");
+    fprintf(stderr,
+            "usage: rs-mrzip [-e/-d/-h/-v] < input > output\n"
+            "options:\n"
+            "  -e: encode (default)\n"
+            "  -d: decode\n"
+            "  -h: print this help\n"
+            "  -v: print version\n");
 }
 
 int main(int argc, char * argv[]) {
-    #if defined(__MSVCRT__)
-        setmode(STDIN_FILENO, O_BINARY);
-        setmode(STDOUT_FILENO, O_BINARY);
-    #endif
-    
+#if defined(__MSVCRT__)
+    setmode(STDIN_FILENO, O_BINARY);
+    setmode(STDOUT_FILENO, O_BINARY);
+#endif
+
     if (argc == 1)
         encode(), exit(0);
     else if (argc != 2)
