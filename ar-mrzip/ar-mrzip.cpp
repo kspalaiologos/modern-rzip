@@ -535,7 +535,6 @@ static void usage(void) {
             "  -V, --version          display version information\n"
             "  -f, --force            force overwriting of existing files\n"
             "  -s, --skip             skip existing files\n"
-            "  -d, --dir              set the destination directory for extraction or source directory for archiving\n"
             "\n"
             "The archive data for extraction is read from standard input. The created archive data is written to "
             "standard output.\n");
@@ -561,7 +560,6 @@ int main(int argc, char * argv[]) {
 
     // Parse arguments using getopt_long.
     int c;
-    std::string destdir = ".";
     int operation = OP_EXTRACT;
     std::string regex = "";
     int verbose = 0;
@@ -575,9 +573,6 @@ int main(int argc, char * argv[]) {
             case 'V':
                 version();
                 return 0;
-            case 'd':
-                destdir = optarg;
-                break;
             case 'x':
                 operation = OP_EXTRACT;
                 break;
