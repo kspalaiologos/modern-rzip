@@ -1,12 +1,20 @@
-modern-rzip - Modernised LRZIP
+modern-rzip.
 ======================
 
-A refurbished partial rewrite of lrzip. In active development, not ready for use yet.
+A backup suite. Supports FLZMA2, PPMD, bzip3, LZ4, Zstandard, LSH i-node ordering deduplicating archiver, long range deduplication, encryption and recovery records. Also a refurbished partial rewrite of lrzip in active development.
 
 ### Download, build and install
 ```
 % git clone --recurse-submodules https://github.com/kspalaiologos/modern-rzip
 % cd modern-rzip && ./configure && make -j$(nproc) && sudo make install
+```
+
+### Usage
+```
+# Compress:
+ar-mrzip -c data_dir | mrzip -L9 > data_dir.mar
+# Decompress:
+mkdir data_dir && mrzip -d < data_dir.mar | ar-mrzip -x data_dir
 ```
 
 ### How it Works
