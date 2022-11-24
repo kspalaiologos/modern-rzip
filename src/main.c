@@ -295,7 +295,7 @@ static struct option long_options[] = {
 };
 
 /* constants for ease of maintenance in getopt loop */
-#define LONGSTART 34
+#define LONGSTART 35
 
 static void set_stdout(struct rzip_control * control) {
     control->flags |= FLAG_STDOUT;
