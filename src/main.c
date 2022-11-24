@@ -32,6 +32,11 @@
 #include <termios.h>
 #include <unistd.h>
 
+#if defined __MSVCRT__
+    #include <fcntl.h>
+    #include <io.h>
+#endif
+
 #include "../include/config.h"
 #include "../include/mrzip_core.h"
 #include "../include/rzip.h"
@@ -301,6 +306,11 @@ static void set_stdout(struct rzip_control * control) {
 static const char * loptions = "BcC:dDe::E:fhH::iKlL:nN:o:O:p:PqR:sS:tT::Um:vVw:zZ?";
 
 int main(int argc, char * argv[]) {
+    #if defined(__MSVCRT__)
+        setmode(STDIN_FILENO, O_BINARY);
+        setmode(STDOUT_FILENO, O_BINARY);
+    #endif
+
     bool lrzncat = false;
     bool options_file = false,
          conf_file_compression_set = false; /* for environment and tracking of compression setting */
@@ -679,7 +689,7 @@ int main(int argc, char * argv[]) {
         }
 
         if (!STDOUT) {
-            control->msgout = stdout;
+            control->msgout = stderr;
             register_outputfile(control, control->msgout);
         }
 

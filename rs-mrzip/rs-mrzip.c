@@ -26,6 +26,11 @@
 #include "../include/config.h"
 #include "reed-solomon.h"
 
+#if defined __MSVCRT__
+    #include <fcntl.h>
+    #include <io.h>
+#endif
+
 static uint8_t ec_buf[255 * BLK_LEN], tr_buf[255 * BLK_LEN];
 
 static void decode(void) {
@@ -172,6 +177,11 @@ static void usage(void) {
 }
 
 int main(int argc, char * argv[]) {
+    #if defined(__MSVCRT__)
+        setmode(STDIN_FILENO, O_BINARY);
+        setmode(STDOUT_FILENO, O_BINARY);
+    #endif
+    
     if (argc == 1)
         encode(), exit(0);
     else if (argc != 2)

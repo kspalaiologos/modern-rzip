@@ -15,6 +15,11 @@
 #include <tuple>
 #include <vector>
 
+#if defined __MSVCRT__
+    #include <fcntl.h>
+    #include <io.h>
+#endif
+
 #include "../common/blake2b.h"
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -536,6 +541,11 @@ enum { OP_EXTRACT, OP_CREATE };
 enum { FILE_BEHAVIOUR_FORCE, FILE_BEHAVIOUR_SKIP, FILE_BEHAVIOUR_ASK };
 
 int main(int argc, char * argv[]) {
+    #if defined(__MSVCRT__)
+        setmode(STDIN_FILENO, O_BINARY);
+        setmode(STDOUT_FILENO, O_BINARY);
+    #endif
+
     // Parse arguments using getopt_long.
     int c; std::string destdir = "."; int operation = OP_EXTRACT; std::string regex = ""; int verbose = 0; int file_behaviour = FILE_BEHAVIOUR_ASK;
 
