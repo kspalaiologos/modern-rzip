@@ -10,6 +10,8 @@
 #include <iostream>
 #include <map>
 #include <mutex>
+#include <regex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <tuple>
@@ -164,7 +166,7 @@ int64_t current_time_secs() {
 }
 
 // Create an archive from directory `dir' and output it to the standard output.
-void create(const char * dir) {
+void create(const std::optional<std::regex> & regex, const char * dir) {
     std::vector<file> files;
 
     std::string base_dir = fs::canonical(dir);
@@ -176,6 +178,9 @@ void create(const char * dir) {
     latch output_latch(1000);
 
     for (auto & e : fs::recursive_directory_iterator(dir)) {
+        if(regex.has_value() && !std::regex_match(e.path().string(), regex.value())) {
+            continue;
+        }
         if (e.is_directory()) continue;
         if (!e.is_regular_file()) {
             std::cerr << "skipping non-regular file, symlinks presently unsupported: " << e.path() << std::endl;
@@ -361,8 +366,8 @@ void create(const char * dir) {
     fflush(stdout);
 }
 
-// Extract the archive from the standard input here.
-void extract() {
+// List files in the archive.
+void list(const std::optional<std::regex> & regex) {
     char header[5];
     fread(header, 5, 1, stdin);
     if (memcmp(header, "ARZIP", 5) != 0) {
@@ -385,13 +390,65 @@ void extract() {
         fread(name, 1, name_length, stdin);
         name[name_length] = 0;
         f.name = name;
-        if (fs::path(f.name).is_absolute()) {
+        if (f.name.is_absolute()) {
             std::cerr << "Absolute path in archive: " << f.name << std::endl;
             exit(1);
         }
-        if (fs::path(f.name).lexically_normal() != fs::path(f.name)) {
+        if (f.name.lexically_normal() != f.name) {
             std::cerr << "Path not normalized: " << f.name << std::endl;
             exit(1);
+        }
+        if(regex.has_value() && !std::regex_match(f.name.string(), regex.value())) {
+            continue;
+        }
+        files.push_back(f);
+        metadata_size -= name_length + 88 + 4 + TLSH_STRING_BUFFER_LEN;
+    }
+
+    // Sort by the archive offset
+    std::sort(files.begin(), files.end(),
+              [](const file & a, const file & b) { return a.archive_offset < b.archive_offset; });
+    
+    // Print the files.
+    for (auto & f : files) {
+        std::cout << f.name << std::endl;
+    }
+}
+
+// Extract the archive from the standard input here.
+void extract(const std::optional<std::regex> & regex) {
+    char header[5];
+    fread(header, 5, 1, stdin);
+    if (memcmp(header, "ARZIP", 5) != 0) {
+        std::cerr << "Invalid header." << std::endl;
+        exit(1);
+    }
+
+    // Read the metadata.
+    uint64_t metadata_size = read_u64();
+    std::vector<file> files;
+    while (metadata_size > 0) {
+        file f;
+        f.modification_date = read_u64();
+        f.size = read_u64();
+        f.archive_offset = read_u64();
+        fread(f.checksum.digest, 1, 64, stdin);
+        fread(f.digest.digest, 1, TLSH_STRING_BUFFER_LEN, stdin);
+        uint32_t name_length = read_u32();
+        char name[name_length + 1];
+        fread(name, 1, name_length, stdin);
+        name[name_length] = 0;
+        f.name = name;
+        if (f.name.is_absolute()) {
+            std::cerr << "Absolute path in archive: " << f.name << std::endl;
+            exit(1);
+        }
+        if (f.name.lexically_normal() != f.name) {
+            std::cerr << "Path not normalized: " << f.name << std::endl;
+            exit(1);
+        }
+        if(regex.has_value() && !std::regex_match(f.name.string(), regex.value())) {
+            continue;
         }
         files.push_back(f);
         metadata_size -= name_length + 88 + 4 + TLSH_STRING_BUFFER_LEN;
@@ -514,9 +571,9 @@ static struct option long_options[] = { { "help", no_argument, 0, 'h' },        
                                         { "extract", no_argument, 0, 'x' },     { "create", required_argument, 0, 'c' },
                                         { "regex", required_argument, 0, 'r' }, { "verbose", no_argument, 0, 'v' },
                                         { "force", no_argument, 0, 'f' },       { "skip", no_argument, 0, 's' },
-                                        { "dest", required_argument, 0, 'd' },  { 0, 0, 0, 0 } };
+                                        { "list", no_argument, 0, 'l' },        { 0, 0, 0, 0 } };
 
-static const char * short_options = "hVxcr:fsd:";
+static const char * short_options = "hVxcr:fls";
 
 static void usage(void) {
     std::cerr
@@ -529,7 +586,8 @@ static void usage(void) {
             "--------------------\n"
             "  -x, --extract          extract from the archive\n"
             "  -c, --create           create an archive from files in directory\n"
-            "  -r, --regex            perform the operations only on files that match a regex\n"
+            "  -l, --list             list files in the archive\n\n"
+            "  -r, --regex            process only files that match a regular expression\n"
             "  -v, --verbose          enable verbose output for progress monitoring\n"
             "  -h, --help             display this message\n"
             "  -V, --version          display version information\n"
@@ -549,7 +607,7 @@ static void version(void) {
                           "There is NO WARRANTY, to the extent permitted by law.\n");
 }
 
-enum { OP_EXTRACT, OP_CREATE };
+enum { OP_EXTRACT, OP_CREATE, OP_LIST };
 enum { FILE_BEHAVIOUR_FORCE, FILE_BEHAVIOUR_SKIP, FILE_BEHAVIOUR_ASK };
 
 int main(int argc, char * argv[]) {
@@ -561,7 +619,7 @@ int main(int argc, char * argv[]) {
     // Parse arguments using getopt_long.
     int c;
     int operation = OP_EXTRACT;
-    std::string regex = "";
+    std::optional<std::regex> regex = std::nullopt;
     int verbose = 0;
     int file_behaviour = FILE_BEHAVIOUR_ASK;
 
@@ -579,8 +637,11 @@ int main(int argc, char * argv[]) {
             case 'c':
                 operation = OP_CREATE;
                 break;
+            case 'l':
+                operation = OP_LIST;
+                break;
             case 'r':
-                regex = optarg;
+                regex = std::regex(optarg);
                 break;
             case 's':
                 file_behaviour = FILE_BEHAVIOUR_SKIP;
@@ -603,7 +664,7 @@ int main(int argc, char * argv[]) {
             std::cerr << "Too many arguments." << std::endl;
             return 1;
         }
-        extract();
+        extract(regex);
     } else if (operation == OP_CREATE) {
         if (optind == argc) {
             std::cerr << "No source directory specified." << std::endl;
@@ -613,7 +674,13 @@ int main(int argc, char * argv[]) {
             std::cerr << "Too many arguments." << std::endl;
             return 1;
         }
-        create(argv[optind]);
+        create(regex, argv[optind]);
+    } else if (operation == OP_LIST) {
+        if (optind != argc) {
+            std::cerr << "Too many arguments." << std::endl;
+            return 1;
+        }
+        list(regex);
     }
 
     return 0;
