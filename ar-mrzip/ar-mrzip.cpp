@@ -166,14 +166,15 @@ int64_t current_time_secs() {
 }
 
 // Create an archive from directory `dir' and output it to the standard output.
-void create(const std::optional<std::regex> & regex, const char * dir) {
+void create(bool verbose, const std::optional<std::regex> & regex, const char * dir) {
     std::vector<file> files;
 
     std::string base_dir = fs::canonical(dir);
 
     uint64_t total_size = 0;
 
-    std::cerr << "Creating an archive out of " << base_dir << "." << std::endl << "* Scanning files..." << std::endl;
+    if(verbose)
+        std::cerr << "Creating an archive out of " << base_dir << "." << std::endl << "* Scanning files..." << std::endl;
 
     latch output_latch(1000);
 
@@ -188,7 +189,8 @@ void create(const std::optional<std::regex> & regex, const char * dir) {
         }
         file current;
 
-        std::cerr << "\33[2K\rAdding file " << files.size() << ": " << e.path() << "..." << std::flush;
+        if(verbose)
+            std::cerr << "\33[2K\rAdding file " << files.size() << ": " << e.path() << "..." << std::flush;
 
         // Set basic properties of the file.
         current.name = fs::relative(e.path(), base_dir);
@@ -201,7 +203,8 @@ void create(const std::optional<std::regex> & regex, const char * dir) {
         files.push_back(std::move(current));
     }
 
-    std::cerr << std::endl << "* Computing checksums..." << std::endl;
+    if(verbose)
+        std::cerr << std::endl << "* Computing checksums..." << std::endl;
 
     int processors = std::thread::hardware_concurrency();
     if (processors == 0) processors = 4;
@@ -209,7 +212,6 @@ void create(const std::optional<std::regex> & regex, const char * dir) {
     // Compute checksums in parallel displaying status every 100MB.
     {
         std::atomic_size_t checksums_done = 0, checksum_total_bytes = 0, checksum_running_bytes = 0;
-        std::mutex display_mutex;
 
         std::vector<std::thread> threads;
 
@@ -225,22 +227,26 @@ void create(const std::optional<std::regex> & regex, const char * dir) {
             });
         }
 
-        std::atomic_bool stop = false;
+        if(verbose) {
+            std::atomic_bool stop = false;
+            std::mutex display_mutex;
 
-        std::thread display = std::thread([&]() {
-            while (!stop) {
-                if (checksum_running_bytes > 100000000) {
-                    std::cerr << "\33[2K\r" << checksum_total_bytes / 1000000 << "MB done ..." << std::flush;
-                    checksum_running_bytes = 0;
+            std::thread display = std::thread([&]() {
+                while (!stop) {
+                    if (checksum_running_bytes > 100000000) {
+                        std::cerr << "\33[2K\r" << checksum_total_bytes / 1000000 << "MB done ..." << std::flush;
+                        checksum_running_bytes = 0;
+                    }
+                    std::this_thread::sleep_for(10ms);
                 }
-                std::this_thread::sleep_for(10ms);
-            }
-        });
+            });
 
-        for (auto & t : threads) t.join();
-
-        stop = true;
-        display.join();
+            for (auto & t : threads) t.join();
+            stop = true;
+            display.join();
+        } else {
+            for (auto & t : threads) t.join();
+        }
     }
 
     // Write the header.
@@ -252,16 +258,19 @@ void create(const std::optional<std::regex> & regex, const char * dir) {
     write_u64(metadata_size);
 
     // Order nodes. TODO: Speedup.
-    std::cerr << std::endl;
-    std::cerr << "* Ordering files..." << std::endl;
+    if(verbose) {
+        std::cerr << std::endl;
+        std::cerr << "* Ordering files..." << std::endl;
+    }
     {
         std::atomic_size_t files_processed = 0;
         auto now = current_time_secs();
         uint64_t next = 0, next_score = 0, c = 0, first_node = 0, last_node = files.size();
         while (c + 1 < last_node) {
             auto elapsed = current_time_secs() - now;
-            std::cerr << "\33[2K\rOrdering files " << files_processed++ << "/" << files.size() << ", "
-                      << (c / (elapsed + 1)) << " files/s..." << std::flush;
+            if(verbose)
+                std::cerr << "\33[2K\rOrdering files " << files_processed++ << "/" << files.size() << ", "
+                          << (c / (elapsed + 1)) << " files/s..." << std::flush;
 
             for (uint64_t i = c + 1; i < last_node; i++) {
                 int score = files[c].digest.compare_to(files[i].digest);
@@ -278,8 +287,10 @@ void create(const std::optional<std::regex> & regex, const char * dir) {
             c++;
         }
 
-        std::cerr << std::endl;
-        std::cerr << "* Time elapsed: " << current_time_secs() - now << "s" << std::endl;
+        if(verbose) {
+            std::cerr << std::endl;
+            std::cerr << "* Time elapsed: " << current_time_secs() - now << "s" << std::endl;
+        }
     }
 
     // Collapse files with the same checksum (assign the same offset).
@@ -299,13 +310,14 @@ void create(const std::optional<std::regex> & regex, const char * dir) {
 
             files_size += f.size;
 
-            if (output_latch())
+            if (verbose && output_latch())
                 std::cerr << "\33[2K\r" << dedup_size / 1024 << "KB / " << files_size / 1024 << "KB deduped"
                           << std::flush;
         }
     }
 
-    std::cerr << std::endl << "* Writing metadata (" << (metadata_size / 1024) << " KB)..." << std::endl;
+    if(verbose)
+        std::cerr << std::endl << "* Writing metadata (" << (metadata_size / 1024) << " KB)..." << std::endl;
 
     // Write the metadata.
     for (auto & f : files) {
@@ -318,7 +330,8 @@ void create(const std::optional<std::regex> & regex, const char * dir) {
         fwrite(f.name.c_str(), 1, f.name.string().length(), stdout);
     }
 
-    std::cerr << "* Writing the archive..." << std::endl;
+    if(verbose)
+        std::cerr << "* Writing the archive..." << std::endl;
 
     // Write the files. TODO: print debug info less often.
     uint64_t current_offset = 0;
@@ -355,7 +368,7 @@ void create(const std::optional<std::regex> & regex, const char * dir) {
             exit(1);
         }
         close(fd);
-        if (output_latch())
+        if (verbose && output_latch())
             std::cerr << "\33[2K\r" << current_offset / 1024 << "KB / " << (files_size - dedup_size) / 1024
                       << "KB written" << std::flush;
     }
@@ -367,7 +380,7 @@ void create(const std::optional<std::regex> & regex, const char * dir) {
 }
 
 // List files in the archive.
-void list(const std::optional<std::regex> & regex) {
+void list(bool verbose, const std::optional<std::regex> & regex) {
     char header[5];
     fread(header, 5, 1, stdin);
     if (memcmp(header, "ARZIP", 5) != 0) {
@@ -411,12 +424,16 @@ void list(const std::optional<std::regex> & regex) {
     
     // Print the files.
     for (auto & f : files) {
-        std::cout << f.name << std::endl;
+        if(!verbose) {
+            std::cout << f.name << std::endl;
+        } else {
+            std::cout << f.name << " " << f.size << "B " << f.modification_date << std::endl;
+        }
     }
 }
 
 // Extract the archive from the standard input here.
-void extract(const std::optional<std::regex> & regex) {
+void extract(bool verbose, const std::optional<std::regex> & regex) {
     char header[5];
     fread(header, 5, 1, stdin);
     if (memcmp(header, "ARZIP", 5) != 0) {
@@ -458,6 +475,9 @@ void extract(const std::optional<std::regex> & regex) {
     std::sort(files.begin(), files.end(),
               [](const file & a, const file & b) { return a.archive_offset < b.archive_offset; });
 
+    if(verbose)
+        std::cerr << "* Extracting " << files.size() << " files." << std::endl;
+
     // Extract.
     uint64_t current_offset = 0;
 
@@ -477,6 +497,10 @@ void extract(const std::optional<std::regex> & regex) {
                 fs::create_directories(fs::path(files[orig_i + j].name).parent_path());
                 if (fs::exists(files[orig_i + j].name))
                     std::cerr << "File " << files[orig_i + j].name << " already exists, overwriting." << std::endl;
+                if(verbose && j != 0)
+                    std::cerr << "Extracting " << files[orig_i + j].name << " (duplicate of " << files[orig_i].name << ")" << std::endl;
+                else if(verbose)
+                    std::cerr << "Extracting " << files[orig_i + j].name << std::endl;
                 int dest_fd = open(files[orig_i + j].name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
                 if (dest_fd == -1) {
                     std::cerr << "open(" << files[orig_i + j].name << ") failed: " << strerror(errno) << std::endl;
@@ -523,6 +547,8 @@ void extract(const std::optional<std::regex> & regex) {
             fs::create_directories(fs::path(files[i].name).parent_path());
             if (fs::exists(files[i].name))
                 std::cerr << "File " << files[i].name << " already exists, overwriting." << std::endl;
+            if(verbose)
+                std::cerr << "Extracting " << files[i].name << std::endl;
             int dest_fd = open(files[i].name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
             if (dest_fd == -1) {
                 std::cerr << "open(" << files[i].name << ") failed: " << strerror(errno) << std::endl;
@@ -664,7 +690,7 @@ int main(int argc, char * argv[]) {
             std::cerr << "Too many arguments." << std::endl;
             return 1;
         }
-        extract(regex);
+        extract(verbose, regex);
     } else if (operation == OP_CREATE) {
         if (optind == argc) {
             std::cerr << "No source directory specified." << std::endl;
@@ -674,13 +700,13 @@ int main(int argc, char * argv[]) {
             std::cerr << "Too many arguments." << std::endl;
             return 1;
         }
-        create(regex, argv[optind]);
+        create(verbose, regex, argv[optind]);
     } else if (operation == OP_LIST) {
         if (optind != argc) {
             std::cerr << "Too many arguments." << std::endl;
             return 1;
         }
-        list(regex);
+        list(verbose, regex);
     }
 
     return 0;
