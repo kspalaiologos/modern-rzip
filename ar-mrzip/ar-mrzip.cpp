@@ -427,7 +427,7 @@ void list(bool verbose, const std::optional<std::regex> & regex) {
         if(!verbose) {
             std::cout << f.name << std::endl;
         } else {
-            std::cout << f.name << " " << f.size << "B " << f.modification_date << std::endl;
+            std::cout << f.name << " " << f.size << "B " << std::chrono::sys_seconds{std::chrono::seconds(f.modification_date)} << std::endl;
         }
     }
 }
