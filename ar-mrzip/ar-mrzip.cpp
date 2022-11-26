@@ -56,6 +56,17 @@ class blake2b_cksum {
     bool operator==(const blake2b_cksum & other) const { return memcmp(digest, other.digest, 64) == 0; }
 
     bool operator<(const blake2b_cksum & other) const { return memcmp(digest, other.digest, 64) < 0; }
+
+    std::string operator()() const {
+        std::string result;
+        result.reserve(128);
+        for (int i = 0; i < 64; i++) {
+            char buf[3];
+            snprintf(buf, 3, "%02x", digest[i]);
+            result += buf;
+        }
+        return result;
+    }
 };
 
 // This needs some explaining. Basically, TLSH is a locality-sensitive hash that assigns a short byte
@@ -163,6 +174,100 @@ void compute_checksums(file & f, const fs::path & e) {
 int64_t current_time_secs() {
     return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
         .count();
+}
+
+void dry_create(bool verbose, const std::optional<std::regex> & regex, const char * dir) {
+    std::vector<file> files;
+
+    std::string base_dir = fs::canonical(dir);
+
+    uint64_t total_size = 0;
+
+    if(verbose)
+        std::cerr << "Creating an archive out of " << base_dir << "." << std::endl << "* Scanning files..." << std::endl;
+
+    latch output_latch(1000);
+
+    for (auto & e : fs::recursive_directory_iterator(dir)) {
+        if(regex.has_value() && !std::regex_match(e.path().string(), regex.value())) {
+            continue;
+        }
+        if (e.is_directory()) continue;
+        if (!e.is_regular_file()) {
+            std::cerr << "skipping non-regular file, symlinks presently unsupported: " << e.path() << std::endl;
+            continue;
+        }
+        file current;
+
+        if(verbose)
+            std::cerr << "\33[2K\rAdding file " << files.size() << ": " << e.path() << "..." << std::flush;
+
+        // Set basic properties of the file.
+        current.name = fs::relative(e.path(), base_dir);
+        total_size += current.size = e.file_size();
+
+        // Query the creation/modification times.
+        current.modification_date = fs::last_write_time(e.path()).time_since_epoch().count();
+
+        // Append the file.
+        files.push_back(std::move(current));
+    }
+
+    if(verbose)
+        std::cerr << std::endl << "* Computing checksums..." << std::endl;
+
+    int processors = std::thread::hardware_concurrency();
+    if (processors == 0) processors = 4;
+
+    // Compute checksums in parallel displaying status every 100MB.
+    {
+        std::atomic_size_t checksums_done = 0, checksum_total_bytes = 0, checksum_running_bytes = 0;
+
+        std::vector<std::thread> threads;
+
+        for (int i = 0; i < processors; i++) {
+            threads.emplace_back([&]() {
+                while (true) {
+                    size_t index = checksums_done++;
+                    if (index >= files.size()) break;
+                    compute_checksums(files[index], base_dir / files[index].name);
+                    checksum_total_bytes += files[index].size;
+                    checksum_running_bytes += files[index].size;
+                }
+            });
+        }
+
+        if(verbose) {
+            std::atomic_bool stop = false;
+            std::mutex display_mutex;
+
+            std::thread display = std::thread([&]() {
+                while (!stop) {
+                    if (checksum_running_bytes > 100000000) {
+                        std::cerr << "\33[2K\r" << checksum_total_bytes / 1000000 << "MB done ..." << std::flush;
+                        checksum_running_bytes = 0;
+                    }
+                    std::this_thread::sleep_for(10ms);
+                }
+            });
+
+            for (auto & t : threads) t.join();
+            stop = true;
+            display.join();
+        } else {
+            for (auto & t : threads) t.join();
+        }
+    }
+
+    for (auto & f : files) {
+        if(!verbose) {
+            std::cout << f.name << std::endl;
+        } else {
+            std::time_t temp = f.modification_date;
+            std::tm* t = std::gmtime(&temp);
+            std::cout << f.name << " " << f.size << "B " << std::put_time(t, "%Y-%m-%d %I:%M:%S %p") << ", BLAKE2b " << f.checksum() << std::endl;
+        }
+    }
 }
 
 // Create an archive from directory `dir' and output it to the standard output.
@@ -429,7 +534,7 @@ void list(bool verbose, const std::optional<std::regex> & regex) {
         } else {
             std::time_t temp = f.modification_date;
             std::tm* t = std::gmtime(&temp);
-            std::cout << f.name << " " << f.size << "B " << std::put_time(t, "%Y-%m-%d %I:%M:%S %p") << std::endl;
+            std::cout << f.name << " " << f.size << "B " << std::put_time(t, "%Y-%m-%d %I:%M:%S %p") << ", BLAKE2b " << f.checksum() << std::endl;
         }
     }
 }
@@ -599,7 +704,8 @@ static struct option long_options[] = { { "help", no_argument, 0, 'h' },        
                                         { "extract", no_argument, 0, 'x' },     { "create", required_argument, 0, 'c' },
                                         { "regex", required_argument, 0, 'r' }, { "verbose", no_argument, 0, 'v' },
                                         { "force", no_argument, 0, 'f' },       { "skip", no_argument, 0, 's' },
-                                        { "list", no_argument, 0, 'l' },        { 0, 0, 0, 0 } };
+                                        { "list", no_argument, 0, 'l' },        { "dry-create", no_argument, 0, 'd' },
+                                        { 0, 0, 0, 0 } };
 
 static const char * short_options = "hVxcr:fls";
 
@@ -614,6 +720,7 @@ static void usage(void) {
             "--------------------\n"
             "  -x, --extract          extract from the archive\n"
             "  -c, --create           create an archive from files in directory\n"
+            "  -d, --dry-create       display what would be put in the archive from files in a directory\n"
             "  -l, --list             list files in the archive\n\n"
             "  -r, --regex            process only files that match a regular expression\n"
             "  -v, --verbose          enable verbose output for progress monitoring\n"
@@ -635,7 +742,7 @@ static void version(void) {
                           "There is NO WARRANTY, to the extent permitted by law.\n");
 }
 
-enum { OP_EXTRACT, OP_CREATE, OP_LIST };
+enum { OP_EXTRACT, OP_CREATE, OP_LIST, OP_DRY_CREATE };
 enum { FILE_BEHAVIOUR_FORCE, FILE_BEHAVIOUR_SKIP, FILE_BEHAVIOUR_ASK };
 
 int main(int argc, char * argv[]) {
@@ -667,6 +774,9 @@ int main(int argc, char * argv[]) {
                 break;
             case 'l':
                 operation = OP_LIST;
+                break;
+            case 'd':
+                operation = OP_DRY_CREATE;
                 break;
             case 'r':
                 regex = std::regex(optarg);
@@ -709,7 +819,17 @@ int main(int argc, char * argv[]) {
             return 1;
         }
         list(verbose, regex);
+    } else if (operation == OP_DRY_CREATE) {
+        if (optind == argc) {
+            std::cerr << "No source directory specified." << std::endl;
+            return 1;
+        }
+        if (optind + 1 != argc) {
+            std::cerr << "Too many arguments." << std::endl;
+            return 1;
+        }
+        dry_create(verbose, regex, argv[optind]);
     }
-
+    
     return 0;
 }
