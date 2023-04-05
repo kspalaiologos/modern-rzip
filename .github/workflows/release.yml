@@ -25,7 +25,7 @@ jobs:
     - name: Upload source tarball
       uses: actions/upload-artifact@v2
       with:
-        files: /tmp/mrzip-$FULLVER.tar.gz
+        path: /tmp/mrzip-$FULLVER.tar.gz
   build-clang:
     name: Ubuntu Clang
     runs-on: ubuntu-latest
@@ -43,6 +43,7 @@ jobs:
         ./configure CC=clang CXX=clang++ --enable-lto --enable-static
     - name: Make
       run: |
+        git config --global --add safe.directory '*'
         make -j$(nproc)
         cp mrzip mrzip-x86_64-linux
         cp rs-mrzip/rs-mrzip rs-mrzip-x86_64-linux
@@ -51,7 +52,7 @@ jobs:
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
-        files: mrzip-x86_64-linux.zip
+        path: mrzip-x86_64-linux.zip
   
   build-windows-msys2:
     name: Windows msys2 GCC
@@ -72,6 +73,7 @@ jobs:
         ./configure CC=gcc CXX=g++ --enable-lto --enable-static
     - name: Make
       run: |
+        git config --global --add safe.directory '*'
         make -j$(nproc)
         cp mrzip.exe mrzip-x86_64.exe
         cp /usr/bin/msys-2.0.dll .
@@ -81,7 +83,7 @@ jobs:
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
-        files: mrzip-x86_64-windows.zip
+        path: mrzip-x86_64-windows.zip
   
   build-archs:
     name: aarch64, s390x, ppc64le Debian Clang
@@ -107,6 +109,7 @@ jobs:
           apt update -q -y
           apt install -q -y zip git clang make libgcrypt-dev libgpg-error-dev
         run: |
+          git config --global --add safe.directory '*'
           cd /modern-rzip
           ./configure CC=clang CXX=clang++ --enable-static
           make
@@ -117,4 +120,4 @@ jobs:
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
-        files: mrzip-${{ matrix.arch }}-linux.zip
+        path: mrzip-${{ matrix.arch }}-linux.zip
