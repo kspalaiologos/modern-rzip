@@ -21,11 +21,11 @@ jobs:
         export MRZIP_PATCH=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f3`
         export FULLVER=`git describe --tags --abbrev=0 | sed 's/v//'`
         echo -ne "$FULLVER\n$MRZIP_MAJOR\n$MRZIP_MINOR\nMRZIP_PATCH\n" > .version
-        tar -czf /tmp/mrzip-$FULLVER.tar.gz --exclude-vcs .
+        tar -czf /tmp/mrzip-src.tar.gz --exclude-vcs .
     - name: Upload source tarball
       uses: actions/upload-artifact@v2
       with:
-        path: /tmp/mrzip-$FULLVER.tar.gz
+        path: /tmp/mrzip-src.tar.gz
   build-clang:
     name: Ubuntu Clang
     runs-on: ubuntu-latest
