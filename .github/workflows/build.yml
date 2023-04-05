@@ -15,6 +15,7 @@ jobs:
       run: |
         sudo apt update -q -y
         sudo apt install -q -y gcc make libgcrypt-dev libgpg-error-dev
+        git config --global --add safe.directory '*'
     - name: Configure
       run:
         ./configure CC=gcc CXX=g++
@@ -33,6 +34,7 @@ jobs:
       run: |
         sudo apt update -q -y
         sudo apt install -q -y clang make libgcrypt-dev libgpg-error-dev
+        git config --global --add safe.directory '*'
     - name: Configure
       run: |
         ./configure CC=clang CXX=clang++ --enable-lto --enable-static
@@ -51,6 +53,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install llvm make libgcrypt libgpg-error
+        git config --global --add safe.directory '*'
     - name: Configure
       run: |
         ./configure CC=clang CXX=clang++
@@ -68,6 +71,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install gcc make libgcrypt libgpg-error
+        git config --global --add safe.directory '*'
     - name: Configure
       run: |
         ./configure CC=gcc CXX=g++
@@ -90,6 +94,7 @@ jobs:
         install: git gcc make libgcrypt-devel libgpg-error-devel msys2-runtime-devel
     - name: Configure
       run: |
+        git config --global --add safe.directory '*'
         ./configure CC=gcc CXX=g++ --enable-lto --enable-static
     - name: Make
       run: make -j$(nproc)
@@ -118,6 +123,7 @@ jobs:
           apt update -q -y
           apt install -q -y git clang make libgcrypt-dev libgpg-error-dev
         run: |
+          git config --global --add safe.directory '*'
           cd /modern-rzip
           ./configure CC=clang CXX=clang++ --enable-static
           make
@@ -146,6 +152,7 @@ jobs:
           apt update -q -y
           apt install -q -y git gcc g++ make libgcrypt-dev libgpg-error-dev
         run: |
+          git config --global --add safe.directory '*'
           cd /modern-rzip
           ./configure CC=gcc CXX=g++
           make
