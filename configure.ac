@@ -10,13 +10,23 @@ AC_PROG_STRIP
 AC_LANG([C])
 AC_PROG_CC
 
-MRZIP_MAJOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f1`
-MRZIP_MINOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f2`
-MRZIP_PATCH=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f3`
-FULLVER=`git describe --tags --abbrev=0 | sed 's/v//'`
-VERSION="-DMRZIP_MAJOR=$MRZIP_MAJOR -DMRZIP_MINOR=$MRZIP_MINOR -DMRZIP_PATCH=$MRZIP_PATCH"
-AC_SUBST([VERSION])
-AC_SUBST([FULLVER])
+if test -f ".version"; then
+  FULLVER=`sed -n '1p' < .version`
+  MRZIP_MAJOR=`sed -n '2p' < .version`
+  MRZIP_MINOR=`sed -n '3p' < .version`
+  MRZIP_PATCH=`sed -n '4p' < .version`
+  VERSION="-DMRZIP_MAJOR=$MRZIP_MAJOR -DMRZIP_MINOR=$MRZIP_MINOR -DMRZIP_PATCH=$MRZIP_PATCH"
+  AC_SUBST([VERSION])
+  AC_SUBST([FULLVER])
+else
+  MRZIP_MAJOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f1`
+  MRZIP_MINOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f2`
+  MRZIP_PATCH=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f3`
+  FULLVER=`git describe --tags --abbrev=0 | sed 's/v//'`
+  VERSION="-DMRZIP_MAJOR=$MRZIP_MAJOR -DMRZIP_MINOR=$MRZIP_MINOR -DMRZIP_PATCH=$MRZIP_PATCH"
+  AC_SUBST([VERSION])
+  AC_SUBST([FULLVER])
+fi
 
 AC_CHECK_HEADER([windows.h], [AC_SUBST([WINDOWS], [1])], [AC_SUBST([WINDOWS], [0])])
 
@@ -48,13 +58,21 @@ AC_ARG_ENABLE([static], [AS_HELP_STRING([--enable-static], [Enable static build]
 AC_CONFIG_FILES([Makefile common.mk])
 AC_OUTPUT
 
-GITVER=`git describe --tags --abbrev=0`
+if test -f ".version"; then
+  echo
+  echo
+  echo "------------------------------------------------------------------------"
+  echo "MODERN-RZIP $MRZIP_MAJOR.$MRZIP_MINOR.$MRZIP_PATCH CONFIGURATION SUMMARY"
+  echo "------------------------------------------------------------------------"
+else
+  GITVER=`git describe --tags --abbrev=0`
 
-echo
-echo
-echo "------------------------------------------------------------------------"
-echo "MODERN-RZIP $MRZIP_MAJOR.$MRZIP_MINOR.$MRZIP_PATCH ($GITVER) CONFIGURATION SUMMARY"
-echo "------------------------------------------------------------------------"
+  echo
+  echo
+  echo "------------------------------------------------------------------------"
+  echo "MODERN-RZIP $MRZIP_MAJOR.$MRZIP_MINOR.$MRZIP_PATCH ($GITVER) CONFIGURATION SUMMARY"
+  echo "------------------------------------------------------------------------"
+fi
 echo 
 echo "Compilation............: make (or gmake)"
 echo "  CFLAGS...............: $CFLAGS"

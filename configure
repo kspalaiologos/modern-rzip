@@ -3898,13 +3898,23 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-MRZIP_MAJOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f1`
-MRZIP_MINOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f2`
-MRZIP_PATCH=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f3`
-FULLVER=`git describe --tags --abbrev=0 | sed 's/v//'`
-VERSION="-DMRZIP_MAJOR=$MRZIP_MAJOR -DMRZIP_MINOR=$MRZIP_MINOR -DMRZIP_PATCH=$MRZIP_PATCH"
+if test -f ".version"; then
+  FULLVER=`sed -n '1p' < .version`
+  MRZIP_MAJOR=`sed -n '2p' < .version`
+  MRZIP_MINOR=`sed -n '3p' < .version`
+  MRZIP_PATCH=`sed -n '4p' < .version`
+  VERSION="-DMRZIP_MAJOR=$MRZIP_MAJOR -DMRZIP_MINOR=$MRZIP_MINOR -DMRZIP_PATCH=$MRZIP_PATCH"
 
 
+else
+  MRZIP_MAJOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f1`
+  MRZIP_MINOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f2`
+  MRZIP_PATCH=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f3`
+  FULLVER=`git describe --tags --abbrev=0 | sed 's/v//'`
+  VERSION="-DMRZIP_MAJOR=$MRZIP_MAJOR -DMRZIP_MINOR=$MRZIP_MINOR -DMRZIP_PATCH=$MRZIP_PATCH"
+
+
+fi
 
 
 ac_header= ac_cache=
@@ -4587,11 +4597,11 @@ if test x$ac_prog_cxx_stdcxx = xno
 then :
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $CXX option to enable C++11 features" >&5
 printf %s "checking for $CXX option to enable C++11 features... " >&6; }
-if test ${ac_cv_prog_cxx_11+y}
+if test ${ac_cv_prog_cxx_cxx11+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
-  ac_cv_prog_cxx_11=no
+  ac_cv_prog_cxx_cxx11=no
 ac_save_CXX=$CXX
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -4633,11 +4643,11 @@ if test x$ac_prog_cxx_stdcxx = xno
 then :
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $CXX option to enable C++98 features" >&5
 printf %s "checking for $CXX option to enable C++98 features... " >&6; }
-if test ${ac_cv_prog_cxx_98+y}
+if test ${ac_cv_prog_cxx_cxx98+y}
 then :
   printf %s "(cached) " >&6
 else $as_nop
-  ac_cv_prog_cxx_98=no
+  ac_cv_prog_cxx_cxx98=no
 ac_save_CXX=$CXX
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -6752,13 +6762,21 @@ printf "%s\n" "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2
 fi
 
 
-GITVER=`git describe --tags --abbrev=0`
+if test -f ".version"; then
+  echo
+  echo
+  echo "------------------------------------------------------------------------"
+  echo "MODERN-RZIP $MRZIP_MAJOR.$MRZIP_MINOR.$MRZIP_PATCH CONFIGURATION SUMMARY"
+  echo "------------------------------------------------------------------------"
+else
+  GITVER=`git describe --tags --abbrev=0`
 
-echo
-echo
-echo "------------------------------------------------------------------------"
-echo "MODERN-RZIP $MRZIP_MAJOR.$MRZIP_MINOR.$MRZIP_PATCH ($GITVER) CONFIGURATION SUMMARY"
-echo "------------------------------------------------------------------------"
+  echo
+  echo
+  echo "------------------------------------------------------------------------"
+  echo "MODERN-RZIP $MRZIP_MAJOR.$MRZIP_MINOR.$MRZIP_PATCH ($GITVER) CONFIGURATION SUMMARY"
+  echo "------------------------------------------------------------------------"
+fi
 echo
 echo "Compilation............: make (or gmake)"
 echo "  CFLAGS...............: $CFLAGS"
