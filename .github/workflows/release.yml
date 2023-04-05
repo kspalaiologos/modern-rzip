@@ -23,9 +23,9 @@ jobs:
         echo -ne "$FULLVER\n$MRZIP_MAJOR\n$MRZIP_MINOR\nMRZIP_PATCH\n" > .version
         tar -czf /tmp/mrzip-src.tar.gz --exclude-vcs .
     - name: Upload source tarball
-      uses: actions/upload-artifact@v2
+      uses: softprops/action-gh-release@v1
       with:
-        path: /tmp/mrzip-src.tar.gz
+        files: /tmp/mrzip-src.tar.gz
   build-clang:
     name: Ubuntu Clang
     runs-on: ubuntu-latest
@@ -52,7 +52,7 @@ jobs:
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
-        path: mrzip-x86_64-linux.zip
+        files: mrzip-x86_64-linux.zip
   
   build-windows-msys2:
     name: Windows msys2 GCC
@@ -83,7 +83,7 @@ jobs:
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
-        path: mrzip-x86_64-windows.zip
+        files: mrzip-x86_64-windows.zip
   
   build-archs:
     name: aarch64, s390x, ppc64le Debian Clang
@@ -120,4 +120,4 @@ jobs:
     - name: Publish Release
       uses: softprops/action-gh-release@v1
       with:
-        path: mrzip-${{ matrix.arch }}-linux.zip
+        files: mrzip-${{ matrix.arch }}-linux.zip
