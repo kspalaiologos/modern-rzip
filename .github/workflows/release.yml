@@ -20,7 +20,7 @@ jobs:
         export MRZIP_MINOR=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f2`
         export MRZIP_PATCH=`git describe --tags --abbrev=0 | sed 's/v//' | cut -d. -f3`
         export FULLVER=`git describe --tags --abbrev=0 | sed 's/v//'`
-        echo -ne "$FULLVER\n$MRZIP_MAJOR\n$MRZIP_MINOR\nMRZIP_PATCH\n" > .version
+        echo -ne "$FULLVER\n$MRZIP_MAJOR\n$MRZIP_MINOR\n$MRZIP_PATCH\n" > .version
         tar -czf /tmp/mrzip-src.tar.gz --exclude-vcs .
     - name: Upload source tarball
       uses: softprops/action-gh-release@v1
