@@ -1,6 +1,3 @@
-[submodule "vendor/zpaq"]
-	path = vendor/zpaq
-	url = https://github.com/modern-rzip/zpaq
 [submodule "vendor/lz4"]
 	path = vendor/lz4
 	url = https://github.com/lz4/lz4
@@ -16,6 +13,3 @@
 [submodule "vendor/ppmd_sh"]
 	path = vendor/ppmd_sh
 	url = https://github.com/Shelwien/ppmd_sh
-[submodule "vendor/tlsh"]
-	path = vendor/tlsh
-	url = https://github.com/modern-rzip/tlsh
