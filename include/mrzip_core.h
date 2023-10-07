@@ -48,7 +48,5 @@ extern void zpaq_compress(uchar * c_buf, i64 * c_len, uchar * s_buf, i64 s_len, 
                           bool progress, int thread);
 extern void zpaq_decompress(uchar * s_buf, i64 * d_len, uchar * c_buf, i64 c_len, FILE * msgout, bool progress,
                             int thread);
-int ppmdsh_varjr1_compress(char * input, int input_len, char * output, int * output_size, unsigned level);
-int ppmdsh_varjr1_decompress(char * input, int input_len, char * output, int * output_size);
 
 #endif

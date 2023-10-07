@@ -100,7 +100,6 @@ static void usage(void) {
                  "Compression Options:\n"
                  "--------------------\n"
                  "	--lzma			lzma compression (default)\n"
-                 "	-s, --ppmdsh		ppmd_sh varJr1 compression\n"
                  "	-Z, --zstd		zstd compression using zlib\n"
                  "	-l, --lz4		lz4 compression (ultra fast)\n"
                  "	-n, --no-compress	no backend compression - prepare for other compressor\n"
@@ -181,8 +180,6 @@ static char * compression_type(void) {
         return "LZMA";
     else if (LZ4_COMPRESS)
         return "LZ4";
-    else if (PPM_COMPRESS)
-        return "PPM";
     else if (ZSTD_COMPRESS)
         return "ZSTD";
     else if (ZPAQ_COMPRESS)
@@ -253,7 +250,6 @@ static void show_summary(void) {
 }
 
 static struct option long_options[] = {
-    { "ppmdsh", no_argument, 0, 's' }, /* 0 */
     { "check", no_argument, 0, 'c' },
     { "comment", required_argument, 0, 'C' },
     { "decompress", no_argument, 0, 'd' },
@@ -372,9 +368,7 @@ int main(int argc, char * argv[]) {
                     fatal("Can only use one of -l, -b, -g, -z, -B or -n\n");
                 /* Select Compression Mode */
                 control->flags &= ~FLAG_NOT_LZMA; /* must clear all compressions first */
-                if (c == 's')
-                    control->flags |= FLAG_PPM_COMPRESS;
-                else if (c == 'Z')
+                if (c == 'Z')
                     control->flags |= FLAG_ZSTD_COMPRESS;
                 else if (c == 'l')
                     control->flags |= FLAG_LZ4_COMPRESS;

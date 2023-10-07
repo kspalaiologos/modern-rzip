@@ -148,8 +148,6 @@ void setup_overhead(rzip_control * control) {
         }
         control->bzip3_block_size = BZIP3_BLOCK_SIZE_FROM_PROP(control->bzip3_bs);
         control->overhead = (i64)control->bzip3_block_size * 6;
-    } else if (PPM_COMPRESS) {
-        control->overhead = (i64)(1 << control->compression_level) * ONE_MB;
     }
 
     /* no need for zpaq computation here. do in open_stream_out() */
@@ -229,11 +227,9 @@ bool read_config(rzip_control * control) {
             if (control->rzip_compression_level < 1 || control->rzip_compression_level > 9)
                 fatal("CONF.FILE error. RZIP Compression Level must between 1 and 9\n");
         } else if (isparameter(parameter, "compressionmethod")) {
-            /* valid are rzip, zstd, ppmdsh, lz4, lzma (default), and zpaq */
+            /* valid are rzip, zstd, lz4, lzma (default), and zpaq */
             if (control->flags & FLAG_NOT_LZMA) fatal("CONF.FILE error. Can only specify one compression method\n");
-            if (isparameter(parametervalue, "ppmdsh"))
-                control->flags |= FLAG_PPM_COMPRESS;
-            else if (isparameter(parametervalue, "zstd"))
+            if (isparameter(parametervalue, "zstd"))
                 control->flags |= FLAG_ZSTD_COMPRESS;
             else if (isparameter(parametervalue, "lz4"))
                 control->flags |= FLAG_LZ4_COMPRESS;

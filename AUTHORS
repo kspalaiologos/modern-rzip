@@ -8,7 +8,6 @@ Conor McCarthy for Fast LZMA2
 Serge Belyshev for encryption help and code
 Ulrich Drepper for MD5 implementation
 PolarSSL authors for sha512 + aes128 implementation
-Dymitry Shkarin and Eugene Shelwien for PPMD_sh varJr1
 Kamila Szewczyk for bzip3
 Yann Collet for lz4 and zstandard
 Matt Mahoney for zpaq

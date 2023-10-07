@@ -1,7 +1,7 @@
 modern-rzip.
 ======================
 
-A backup suite. Supports FLZMA2, PPMD, bzip3, LZ4, Zstandard, LSH i-node ordering deduplicating archiver, long range deduplication, encryption and recovery records. Also a refurbished partial rewrite of lrzip in active development.
+A backup suite. Supports FLZMA2, bzip3, LZ4, Zstandard, LSH i-node ordering deduplicating archiver, long range deduplication, encryption and recovery records. Also a refurbished partial rewrite of lrzip in active development.
 
 ### Download, build and install
 ```
@@ -28,7 +28,6 @@ significantly faster compression than standalone compressors and much faster dec
 **modern-rzip**'s compressors are:
 * Fast LZMA2 (default)
 * Zstandard
-* PPMd_sh based on vJr1
 * LZ4
 * zpaq
 * bzip3

@@ -211,44 +211,6 @@ static int zpaq_compress_buf(rzip_control * control, struct compress_thread * ct
     return 0;
 }
 
-static int ppmdsh_compress_buf(rzip_control * control, struct compress_thread * cthread) {
-    u32 dlen = round_up_page(control, cthread->s_len + 10000);
-    int ppmdsh_ret;
-    uchar * c_buf;
-
-    if (LZ4_TEST) {
-        if (!lz4_compresses(control, cthread->s_buf, cthread->s_len)) return 0;
-    }
-
-    c_buf = malloc(dlen);
-    if (!c_buf) {
-        print_err("Unable to allocate c_buf in ppmdsh_compress_buf\n");
-        return -1;
-    }
-
-    // TODO: mapping between mem and compression lvl.
-    int res = ppmdsh_varjr1_compress(cthread->s_buf, cthread->s_len, c_buf, &dlen, control->compression_level);
-
-    if (unlikely(res != 0)) {
-        dealloc(c_buf);
-        print_maxverbose("PPMD_sh varJr1 compress failed\n");
-        return -1;
-    }
-
-    if (unlikely(dlen >= cthread->c_len)) {
-        print_maxverbose("Incompressible block\n");
-        /* Incompressible, leave as CTYPE_NONE */
-        dealloc(c_buf);
-        return 0;
-    }
-
-    cthread->c_len = dlen;
-    dealloc(cthread->s_buf);
-    cthread->s_buf = c_buf;
-    cthread->c_type = CTYPE_PPM;
-    return 0;
-}
-
 static int zstd_compress_buf(rzip_control * control, struct compress_thread * cthread) {
     unsigned long dlen = round_up_page(control, ZSTD_COMPRESSBOUND(cthread->s_len));
     uchar * c_buf;
@@ -404,41 +366,6 @@ static int zpaq_decompress_buf(rzip_control * control, struct uncomp_thread * uc
 
     if (unlikely(dlen != ucthread->u_len)) {
         print_err("Inconsistent length after decompression. Got %'" PRId64 " bytes, expected %'" PRId64 "\n", dlen,
-                  ucthread->u_len);
-        ret = -1;
-    } else
-        dealloc(c_buf);
-out:
-    if (ret == -1) {
-        dealloc(ucthread->s_buf);
-        ucthread->s_buf = c_buf;
-    }
-    return ret;
-}
-
-static int ppmdsh_decompress_buf(rzip_control * control, struct uncomp_thread * ucthread) {
-    u32 dlen = ucthread->u_len + 10;
-    int ret = 0, bzerr;
-    uchar * c_buf;
-
-    c_buf = ucthread->s_buf;
-    ucthread->s_buf = malloc(round_up_page(control, dlen));
-    if (unlikely(!ucthread->s_buf)) {
-        print_err("Failed to allocate %'d bytes for decompression\n", dlen);
-        ret = -1;
-        goto out;
-    }
-
-    bzerr = ppmdsh_varjr1_decompress(c_buf, ucthread->c_len, ucthread->s_buf, &dlen);
-
-    if (unlikely(bzerr != 0)) {
-        print_err("Failed to decompress buffer - bzerr=%'d\n", bzerr);
-        ret = -1;
-        goto out;
-    }
-
-    if (unlikely(dlen != ucthread->u_len)) {
-        print_err("Inconsistent length after decompression. Got %'d bytes, expected %'" PRId64 "\n", dlen,
                   ucthread->u_len);
         ret = -1;
     } else
@@ -977,8 +904,6 @@ void * open_stream_out(rzip_control * control, int f, unsigned int n, i64 chunk_
             stream_bufsize = round_up_page(control, (0x100000 << control->zpaq_bs) - 0x1000);
         else if (BZIP3_COMPRESS && (limit / control->threads > control->bzip3_block_size))
             stream_bufsize = round_up_page(control, control->bzip3_block_size - 0x1000);
-        else if (PPM_COMPRESS && (limit / control->threads > 0x100000 << control->bzip3_bs))
-            stream_bufsize = round_up_page(control, (0x100000 << control->bzip3_bs) - 0x1000);
         else if (LZMA_COMPRESS && limit / control->threads > STREAM_BUFSIZE)
             // for smaller dictionary sizes, need MAX test to bring in larger buffer from limit
             // limit = usable ram / 2
@@ -1225,8 +1150,6 @@ retry:
             ret = lzma_compress_buf(control, cti, current_thread);
         else if (LZ4_COMPRESS)
             ret = lz4_compress_buf(control, cti);
-        else if (PPM_COMPRESS)
-            ret = ppmdsh_compress_buf(control, cti);
         else if (ZSTD_COMPRESS)
             ret = zstd_compress_buf(control, cti);
         else if (ZPAQ_COMPRESS)
@@ -1447,9 +1370,6 @@ retry:
                 break;
             case CTYPE_LZ4:
                 ret = lz4_decompress_buf(control, uci);
-                break;
-            case CTYPE_PPM:
-                ret = ppmdsh_decompress_buf(control, uci);
                 break;
             case CTYPE_ZSTD:
                 ret = zstd_decompress_buf(control, uci);

@@ -10,6 +10,3 @@
 [submodule "vendor/bzip3"]
 	path = vendor/bzip3
 	url = https://github.com/kspalaiologos/bzip3
-[submodule "vendor/ppmd_sh"]
-	path = vendor/ppmd_sh
-	url = https://github.com/Shelwien/ppmd_sh
