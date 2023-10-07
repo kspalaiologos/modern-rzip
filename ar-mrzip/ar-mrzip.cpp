@@ -530,11 +530,11 @@ void list(bool verbose, const std::optional<std::regex> & regex) {
     // Print the files.
     for (auto & f : files) {
         if(!verbose) {
-            std::cout << f.name << std::endl;
+            std::cout << f.name.string() << std::endl;
         } else {
             std::time_t temp = f.modification_date;
             std::tm* t = std::gmtime(&temp);
-            std::cout << f.name << " " << f.size << "B " << std::put_time(t, "%Y-%m-%d %I:%M:%S %p") << ", BLAKE2b " << f.checksum() << std::endl;
+            std::cout << f.name.string() << " " << f.size << "B " << std::put_time(t, "%Y-%m-%d %I:%M:%S %p") << ", BLAKE2b " << f.checksum() << std::endl;
         }
     }
 }
@@ -721,7 +721,7 @@ static void usage(void) {
             "  -x, --extract          extract from the archive\n"
             "  -c, --create           create an archive from files in directory\n"
             "  -d, --dry-create       display what would be put in the archive from files in a directory\n"
-            "  -l, --list             list files in the archive\n\n"
+            "  -l, --list             list files in the archive\n"
             "  -r, --regex            process only files that match a regular expression\n"
             "  -v, --verbose          enable verbose output for progress monitoring\n"
             "  -h, --help             display this message\n"
