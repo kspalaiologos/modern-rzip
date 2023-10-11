@@ -751,7 +751,8 @@ static void usage(void) {
             "  -c, --create           create an archive from files in directory\n"
             "  -d, --dry-create       display what would be put in the archive from files in a directory\n"
             "  -l, --list             list files in the archive\n"
-            "  -r, --regex            process only files that match a regular expression\n"
+            "  -r, --regex [expr]     process only files that match a regular expression\n"
+            "  -D, --directory [path] change the working directory\n"
             "  -v, --verbose          enable verbose output for progress monitoring\n"
             "  -h, --help             display this message\n"
             "  -V, --version          display version information\n"
@@ -815,6 +816,12 @@ int main(int argc, char * argv[]) {
                 break;
             case 'f':
                 file_behaviour = FILE_BEHAVIOUR_FORCE;
+                break;
+            case 'D':
+                if (chdir(optarg) == -1) {
+                    std::cerr << "chdir(" << optarg << ") failed: " << strerror(errno) << std::endl;
+                    return 1;
+                }
                 break;
             case 'v':
                 verbose = 1;
