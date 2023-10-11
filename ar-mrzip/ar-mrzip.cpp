@@ -601,7 +601,21 @@ void extract(bool verbose, const std::optional<std::regex> & regex) {
             // Create files, update their modification dates.
             std::vector<int> fds;
             for (size_t j = 0; j < duplicates; j++) {
-                fs::create_directories(fs::path(files[orig_i + j].name).parent_path());
+                if (files[orig_i + j].name.is_absolute()) {
+                    std::cerr << "Absolute path in archive: " << files[orig_i + j].name << std::endl;
+                    exit(1);
+                }
+                if (files[orig_i + j].name.lexically_normal() != files[orig_i + j].name) {
+                    std::cerr << "Path not normalized: " << files[orig_i + j].name << std::endl;
+                    exit(1);
+                }
+                if (files[orig_i + j].name.string().find(std::filesystem::path::preferred_separator) != std::string::npos) {
+                    if (fs::absolute(files[orig_i + j].name.parent_path()).string().length() < fs::absolute(fs::current_path()).string().length()) {
+                        std::cerr << "File " << files[orig_i + j].name << " is outside of the archive." << std::endl;
+                        exit(1);
+                    }
+                    fs::create_directories(fs::path(files[orig_i + j].name).parent_path());
+                }
                 if (fs::exists(files[orig_i + j].name))
                     std::cerr << "File " << files[orig_i + j].name << " already exists, overwriting." << std::endl;
                 if(verbose && j != 0)
@@ -651,7 +665,22 @@ void extract(bool verbose, const std::optional<std::regex> & regex) {
             }
         } else {
             // Create the file, update its modification date.
-            fs::create_directories(fs::path(files[i].name).parent_path());
+            // Check if the filename contains a path separator. Make sure the path is not absolute and does not contain ..
+            if (files[i].name.is_absolute()) {
+                std::cerr << "Absolute path in archive: " << files[i].name << std::endl;
+                exit(1);
+            }
+            if (files[i].name.lexically_normal() != files[i].name) {
+                std::cerr << "Path not normalized: " << files[i].name << std::endl;
+                exit(1);
+            }
+            if (files[i].name.string().find(std::filesystem::path::preferred_separator) != std::string::npos) {
+                if (fs::absolute(files[i].name.parent_path()).string().length() < fs::absolute(fs::current_path()).string().length()) {
+                    std::cerr << "File " << files[i].name << " is outside of the archive." << std::endl;
+                    exit(1);
+                }
+                fs::create_directories(fs::path(files[i].name).parent_path());
+            }
             if (fs::exists(files[i].name))
                 std::cerr << "File " << files[i].name << " already exists, overwriting." << std::endl;
             if(verbose)
