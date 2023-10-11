@@ -654,7 +654,21 @@ void extract(bool verbose, const std::optional<std::regex> & regex) {
             // Create files, update their modification dates.
             std::vector<int> fds;
             for (size_t j = 0; j < duplicates; j++) {
-                fs::create_directories(fs::path(files[orig_i + j].name).parent_path());
+                if (files[orig_i + j].name.is_absolute()) {
+                    std::cerr << "Absolute path in archive: " << files[orig_i + j].name << std::endl;
+                    exit(1);
+                }
+                if (files[orig_i + j].name.lexically_normal() != files[orig_i + j].name) {
+                    std::cerr << "Path not normalized: " << files[orig_i + j].name << std::endl;
+                    exit(1);
+                }
+                if (files[orig_i + j].name.string().find(std::filesystem::path::preferred_separator) != std::string::npos) {
+                    if (fs::absolute(files[orig_i + j].name.parent_path()).string().length() < fs::absolute(fs::current_path()).string().length()) {
+                        std::cerr << "File " << files[orig_i + j].name << " is outside of the archive." << std::endl;
+                        exit(1);
+                    }
+                    fs::create_directories(fs::path(files[orig_i + j].name).parent_path());
+                }
                 if (fs::exists(files[orig_i + j].name))
                     std::cerr << "File " << files[orig_i + j].name << " already exists, overwriting." << std::endl;
                 if(verbose && j != 0)
@@ -704,7 +718,22 @@ void extract(bool verbose, const std::optional<std::regex> & regex) {
             }
         } else {
             // Create the file, update its modification date.
-            fs::create_directories(fs::path(files[i].name).parent_path());
+            // Check if the filename contains a path separator. Make sure the path is not absolute and does not contain ..
+            if (files[i].name.is_absolute()) {
+                std::cerr << "Absolute path in archive: " << files[i].name << std::endl;
+                exit(1);
+            }
+            if (files[i].name.lexically_normal() != files[i].name) {
+                std::cerr << "Path not normalized: " << files[i].name << std::endl;
+                exit(1);
+            }
+            if (files[i].name.string().find(std::filesystem::path::preferred_separator) != std::string::npos) {
+                if (fs::absolute(files[i].name.parent_path()).string().length() < fs::absolute(fs::current_path()).string().length()) {
+                    std::cerr << "File " << files[i].name << " is outside of the archive." << std::endl;
+                    exit(1);
+                }
+                fs::create_directories(fs::path(files[i].name).parent_path());
+            }
             if (fs::exists(files[i].name))
                 std::cerr << "File " << files[i].name << " already exists, overwriting." << std::endl;
             if(verbose)
@@ -777,7 +806,8 @@ static void usage(void) {
             "  -c, --create           create an archive from files in directory\n"
             "  -d, --dry-create       display what would be put in the archive from files in a directory\n"
             "  -l, --list             list files in the archive\n"
-            "  -r, --regex            process only files that match a regular expression\n"
+            "  -r, --regex [expr]     process only files that match a regular expression\n"
+            "  -D, --directory [path] change the working directory\n"
             "  -t, --translate        translate file names with a regular expression.\n"
             "  -v, --verbose          enable verbose output for progress monitoring\n"
             "  -h, --help             display this message\n"
@@ -866,6 +896,12 @@ int main(int argc, char * argv[]) {
                 break;
             case 'f':
                 file_behaviour = FILE_BEHAVIOUR_FORCE;
+                break;
+            case 'D':
+                if (chdir(optarg) == -1) {
+                    std::cerr << "chdir(" << optarg << ") failed: " << strerror(errno) << std::endl;
+                    return 1;
+                }
                 break;
             case 'v':
                 verbose = 1;
