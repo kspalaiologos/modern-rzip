@@ -271,41 +271,79 @@ void dry_create(bool verbose, const std::optional<std::regex> & regex, const cha
 }
 
 // Create an archive from directory `dir' and output it to the standard output.
-void create(bool verbose, const std::optional<std::regex> & regex, const char * dir) {
+void create(bool verbose, const std::optional<std::regex> & regex, const char * dir,
+            const std::optional<std::regex> & tr, const std::optional<std::string> & replacement) {
     std::vector<file> files;
-
-    std::string base_dir = fs::canonical(dir);
-
-    uint64_t total_size = 0;
-
-    if(verbose)
-        std::cerr << "Creating an archive out of " << base_dir << "." << std::endl << "* Scanning files..." << std::endl;
 
     latch output_latch(1000);
 
-    for (auto & e : fs::recursive_directory_iterator(dir)) {
-        if(regex.has_value() && !std::regex_match(e.path().string(), regex.value())) {
-            continue;
-        }
-        if (e.is_directory()) continue;
-        if (!e.is_regular_file()) {
-            std::cerr << "skipping non-regular file, symlinks presently unsupported: " << e.path() << std::endl;
-            continue;
-        }
-        file current;
+    std::string base_dir;
+
+    if (dir != nullptr) {
+        base_dir = fs::canonical(dir);
+
+        uint64_t total_size = 0;
 
         if(verbose)
-            std::cerr << "\33[2K\rAdding file " << files.size() << ": " << e.path() << "..." << std::flush;
+            std::cerr << "Creating an archive out of " << base_dir << "." << std::endl << "* Scanning files..." << std::endl;
 
-        // Set basic properties of the file.
-        current.name = fs::relative(e.path(), base_dir);
-        total_size += current.size = e.file_size();
+        for (auto & e : fs::recursive_directory_iterator(dir)) {
+            if(regex.has_value() && !std::regex_match(e.path().string(), regex.value())) {
+                continue;
+            }
+            if (e.is_directory()) continue;
+            if (!e.is_regular_file()) {
+                std::cerr << "skipping non-regular file, symlinks presently unsupported: " << e.path() << std::endl;
+                continue;
+            }
+            file current;
 
-        // Query the creation/modification times.
-        current.modification_date = fs::last_write_time(e.path()).time_since_epoch().count();
+            if(verbose)
+                std::cerr << "\33[2K\rAdding file " << files.size() << ": " << e.path() << "..." << std::flush;
 
-        // Append the file.
-        files.push_back(std::move(current));
+            // Set basic properties of the file.
+            current.name = fs::relative(e.path(), base_dir);
+            total_size += current.size = e.file_size();
+
+            // Query the creation/modification times.
+            current.modification_date = fs::last_write_time(e.path()).time_since_epoch().count();
+
+            // Append the file.
+            files.push_back(std::move(current));
+        }
+    } else {
+        base_dir = "";
+
+        uint64_t total_size = 0;
+
+        if(verbose)
+            std::cerr << "Creating an archive out of user-supplied file list." << std::endl << "* Scanning files..." << std::endl;
+
+        std::string e; while (std::getline(std::cin, e)) {
+            if(regex.has_value() && !std::regex_match(e, regex.value())) {
+                continue;
+            }
+            auto p = fs::path(e);
+            if (fs::is_directory(p)) continue;
+            if (!fs::is_regular_file(p)) {
+                std::cerr << "skipping non-regular file, symlinks presently unsupported: " << p << std::endl;
+                continue;
+            }
+            file current;
+
+            if(verbose)
+                std::cerr << "\33[2K\rAdding file " << files.size() << ": " << p << "..." << std::flush;
+
+            // Set basic properties of the file.
+            current.name = p;
+            total_size += current.size = fs::file_size(p);
+
+            // Query the creation/modification times.
+            current.modification_date = fs::last_write_time(e).time_since_epoch().count();
+
+            // Append the file.
+            files.push_back(std::move(current));
+        }
     }
 
     if(verbose)
@@ -425,14 +463,29 @@ void create(bool verbose, const std::optional<std::regex> & regex, const char * 
         std::cerr << std::endl << "* Writing metadata (" << (metadata_size / 1024) << " KB)..." << std::endl;
 
     // Write the metadata.
-    for (auto & f : files) {
-        write_u64(f.modification_date);
-        write_u64(f.size);
-        write_u64(f.archive_offset);
-        fwrite(f.checksum.digest, 1, 64, stdout);
-        fwrite(f.digest.digest, 1, TLSH_STRING_BUFFER_LEN, stdout);
-        write_u32(f.name.string().length());
-        fwrite(f.name.c_str(), 1, f.name.string().length(), stdout);
+    if (tr.has_value() && replacement.has_value()) {
+        for (auto & f : files) {
+            write_u64(f.modification_date);
+            write_u64(f.size);
+            write_u64(f.archive_offset);
+            fwrite(f.checksum.digest, 1, 64, stdout);
+            fwrite(f.digest.digest, 1, TLSH_STRING_BUFFER_LEN, stdout);
+            std::string ns = f.name.string();
+            std::regex_replace(ns, *tr, *replacement);
+            write_u32(ns.length());
+            fwrite(ns.c_str(), 1, ns.length(), stdout);
+        }
+    } else {
+        for (auto & f : files) {
+            write_u64(f.modification_date);
+            write_u64(f.size);
+            write_u64(f.archive_offset);
+            fwrite(f.checksum.digest, 1, 64, stdout);
+            fwrite(f.digest.digest, 1, TLSH_STRING_BUFFER_LEN, stdout);
+            std::string s = f.name.string();
+            write_u32(s.length());
+            fwrite(s.c_str(), 1, s.length(), stdout);
+        }
     }
 
     if(verbose)
@@ -715,7 +768,9 @@ static void usage(void) {
             " version " PACKAGE_VERSION
             "\n"
             "Copyright (C) Kamila Szewczyk 2022\n"
-            "Usage: ar-mrzip [options] -d < [archive] OR ar-mrzip [options] [source] > [archive]\n"
+            "Usage: ar-mrzip [options] -d < [archive]       (extract)\n"
+            "  OR   ar-mrzip [options] [source] > [archive] (create)\n"
+            "  OR   ar-mrzip [options] < [list] > [archive] (create)\n"
             "General options:\n"
             "--------------------\n"
             "  -x, --extract          extract from the archive\n"
@@ -723,6 +778,7 @@ static void usage(void) {
             "  -d, --dry-create       display what would be put in the archive from files in a directory\n"
             "  -l, --list             list files in the archive\n"
             "  -r, --regex            process only files that match a regular expression\n"
+            "  -t, --translate        translate file names with a regular expression.\n"
             "  -v, --verbose          enable verbose output for progress monitoring\n"
             "  -h, --help             display this message\n"
             "  -V, --version          display version information\n"
@@ -754,7 +810,8 @@ int main(int argc, char * argv[]) {
     // Parse arguments using getopt_long.
     int c;
     int operation = OP_EXTRACT;
-    std::optional<std::regex> regex = std::nullopt;
+    std::optional<std::regex> regex = std::nullopt, tr = std::nullopt;
+    std::optional<std::string> replacement = std::nullopt;
     int verbose = 0;
     int file_behaviour = FILE_BEHAVIOUR_ASK;
 
@@ -781,6 +838,29 @@ int main(int argc, char * argv[]) {
             case 'r':
                 regex = std::regex(optarg);
                 break;
+            case 't':
+                // split the string on unescaped /'s, i.e. only if the preceding char is not a \.
+                std::string s = optarg;
+                std::vector<std::string> parts;
+                std::string current;
+                bool escaped = false;
+                for (char c : s) {
+                    if (c == '/' && !escaped) {
+                        parts.push_back(current);
+                        current = "";
+                    } else {
+                        current += c;
+                    }
+                    escaped = c == '\\';
+                }
+                parts.push_back(current);
+                if (parts.size() != 2) {
+                    std::cerr << "Invalid translation string." << std::endl;
+                    return 1;
+                }
+                tr = std::regex(parts[0]);
+                replacement = parts[1];
+                break;
             case 's':
                 file_behaviour = FILE_BEHAVIOUR_SKIP;
                 break;
@@ -805,14 +885,11 @@ int main(int argc, char * argv[]) {
         extract(verbose, regex);
     } else if (operation == OP_CREATE) {
         if (optind == argc) {
-            std::cerr << "No source directory specified." << std::endl;
-            return 1;
-        }
-        if (optind + 1 != argc) {
+            create(verbose, regex, NULL, tr, replacement);
+        } else if (optind + 1 != argc) {
             std::cerr << "Too many arguments." << std::endl;
             return 1;
-        }
-        create(verbose, regex, argv[optind]);
+        } else create(verbose, regex, argv[optind], tr, replacement);
     } else if (operation == OP_LIST) {
         if (optind != argc) {
             std::cerr << "Too many arguments." << std::endl;
