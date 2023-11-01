@@ -848,66 +848,92 @@ int main(int argc, char * argv[]) {
     while ((c = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
         switch (c) {
             case 'h':
-                usage();
-                return 0;
+							{
+								usage();
+								return 0;
+							}
             case 'V':
-                version();
-                return 0;
+							{
+								version();
+								return 0;
+							}
             case 'x':
-                operation = OP_EXTRACT;
-                break;
+							{
+								operation = OP_EXTRACT;
+								break;
+							}
             case 'c':
-                operation = OP_CREATE;
-                break;
+							{
+								operation = OP_CREATE;
+								break;
+							}
             case 'l':
-                operation = OP_LIST;
-                break;
+							{
+								operation = OP_LIST;
+								break;
+							}
             case 'd':
-                operation = OP_DRY_CREATE;
-                break;
+							{
+								operation = OP_DRY_CREATE;
+								break;
+							}
             case 'r':
-                regex = std::regex(optarg);
-                break;
+							{
+								regex = std::regex(optarg);
+								break;
+							}
             case 't':
-                // split the string on unescaped /'s, i.e. only if the preceding char is not a \.
-                std::string s = optarg;
-                std::vector<std::string> parts;
-                std::string current;
-                bool escaped = false;
-                for (char c : s) {
-                    if (c == '/' && !escaped) {
-                        parts.push_back(current);
-                        current = "";
-                    } else {
-                        current += c;
-                    }
-                    escaped = c == '\\';
-                }
-                parts.push_back(current);
-                if (parts.size() != 2) {
-                    std::cerr << "Invalid translation string." << std::endl;
-                    return 1;
-                }
-                tr = std::regex(parts[0]);
-                replacement = parts[1];
-                break;
+							{
+								// split the string on unescaped /'s, i.e. only if the preceding char is not a \.
+								std::string s = optarg;
+								std::vector<std::string> parts;
+								std::string current;
+								bool escaped = false;
+								for (char c : s) {
+									if (c == '/' && !escaped) {
+										parts.push_back(current);
+										current = "";
+									} else {
+										current += c;
+									}
+									escaped = c == '\\';
+								}
+								parts.push_back(current);
+								if (parts.size() != 2) {
+									std::cerr << "Invalid translation string." << std::endl;
+									return 1;
+								}
+								tr = std::regex(parts[0]);
+								replacement = parts[1];
+								break;
+							}
             case 's':
-                file_behaviour = FILE_BEHAVIOUR_SKIP;
-                break;
+							{
+								file_behaviour = FILE_BEHAVIOUR_SKIP;
+								break;
+							}
             case 'f':
-                file_behaviour = FILE_BEHAVIOUR_FORCE;
-                break;
+							{
+								file_behaviour = FILE_BEHAVIOUR_FORCE;
+								break;
+							}
             case 'D':
-                if (chdir(optarg) == -1) {
-                    std::cerr << "chdir(" << optarg << ") failed: " << strerror(errno) << std::endl;
-                    return 1;
-                }
-                break;
+							{
+								if (chdir(optarg) == -1) {
+									std::cerr << "chdir(" << optarg << ") failed: " << strerror(errno) << std::endl;
+									return 1;
+								}
+								break;
+							}
             case 'v':
-                verbose = 1;
-                break;
+							{
+								verbose = 1;
+								break;
+							}
             case '?':
-                return 1;
+							{
+								return 1;
+							}
             default:
                 abort();
         }
